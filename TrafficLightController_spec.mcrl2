@@ -3,6 +3,9 @@ sort
 	LightColorState = struct green | orange | red;
 	WeatherCondition = struct dry | snowing | raining;
 
+map trafficLightAmount:Nat;
+eqn trafficLightAmount = 3;
+
 % Actions Definitions: External 
 act 
 	ShowLight: Nat # LightColorState;
@@ -24,35 +27,24 @@ act
 proc 
 	LightController(color: LightColorState) = 
 		(color == red) -> 
-			sum trafficLight: Nat . (trafficLight < 2) -> 
+			sum trafficLight: Nat . (trafficLight < trafficLightAmount) -> 
 				RequestGreen(trafficLight) .
 				ShowLight(trafficLight, green) .
-				LightTimeout(trafficLight, green) .
 				LightController(green) 
 		+
 		(color == green) ->
-			sum trafficLight: Nat, timeoutColor: LightColorState .(trafficLight < 2) -> 
-				LightTimeout(trafficLight, timeoutColor) .
-				(
-					(timeoutColor == green) ->
-						ShowLight(trafficLight, orange) .
-						LightController(orange)
-					+
-					(timeoutColor != green) ->
-						LightController(color)
-				)
+			sum trafficLight: Nat .(trafficLight < trafficLightAmount) -> 
+				LightTimeout(trafficLight, green) .
+				ShowLight(trafficLight, orange) .
+				LightController(orange)
 		+
 		(color == orange) ->
-			sum trafficLight: Nat, timeoutColor: LightColorState .(trafficLight < 2) -> 
-				LightTimeout(trafficLight, timeoutColor) .
-				(
-					(timeoutColor == orange) ->
-						ShowLight(trafficLight, red) .
-						LightController(red)
-					+
-					(timeoutColor != orange) ->
-						LightController(color)
-				);
+			sum trafficLight: Nat .(trafficLight < trafficLightAmount) -> 
+				LightTimeout(trafficLight, orange) .
+				ShowLight(trafficLight, red).
+				CycleDone(trafficLight).
+				LightController(red).
+;
 
 init LightController(red)
 %	allow(
