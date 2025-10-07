@@ -24,14 +24,14 @@ act
 proc 
 	LightController(color: LightColorState) = 
 		(color == red) -> 
-			sum trafficLight: Nat . 
+			sum trafficLight: Nat . (trafficLight < 2) -> 
 				RequestGreen(trafficLight) .
 				ShowLight(trafficLight, green) .
 				LightTimeout(trafficLight, green) .
 				LightController(green) 
 		+
 		(color == green) ->
-			sum trafficLight: Nat, timeoutColor: LightColorState .
+			sum trafficLight: Nat, timeoutColor: LightColorState .(trafficLight < 2) -> 
 				LightTimeout(trafficLight, timeoutColor) .
 				(
 					(timeoutColor == green) ->
@@ -43,7 +43,7 @@ proc
 				)
 		+
 		(color == orange) ->
-			sum trafficLight: Nat, timeoutColor: LightColorState .
+			sum trafficLight: Nat, timeoutColor: LightColorState .(trafficLight < 2) -> 
 				LightTimeout(trafficLight, timeoutColor) .
 				(
 					(timeoutColor == orange) ->
@@ -55,11 +55,12 @@ proc
 				);
 
 init LightController(red)
-	allow(
-        {commRequestGreen, commCycleDone, RequestGreen, CycleDone, ShowLight, LightTimeout, receiveLightTimeout},
-        comm({
-            sendRequestGreen | receiveRequestGreen -> commRequestGreen,
-            sendCycleDone | receiveCycleDone -> commCycleDone,
-            sendLightTimeout | receiveLightTimeout -> commLightTimeout
-        })
-    );
+%	allow(
+ %       {commRequestGreen, commCycleDone, RequestGreen, CycleDone, ShowLight, LightTimeout, receiveLightTimeout},
+ %       comm({
+ %           sendRequestGreen | receiveRequestGreen -> commRequestGreen,
+ %           sendCycleDone | receiveCycleDone -> commCycleDone,
+%            sendLightTimeout | receiveLightTimeout -> commLightTimeout
+ %       })
+%    )
+;
