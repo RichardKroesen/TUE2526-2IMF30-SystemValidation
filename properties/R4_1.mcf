@@ -1,0 +1,2 @@
+forall t: Nat.
+[true.ShowLight(0,red). (!ShowLight(0,green)). ShowLight(0,orange)]false

@@ -20,11 +20,46 @@ act
 	RequestGreen: Nat;
 	EV_Detected: Nat # Bool;
 
-
-
-
 % REQUIRED FOR PARSING CHECK! NOT ACTUAL LOGIC YET
 proc 
-  Controller = ShowLight(0, red);
+	LightController(color: LightColorState) = 
+		(color == red) -> 
+			sum trafficLight: Nat . 
+				RequestGreen(trafficLight) .
+				ShowLight(trafficLight, green) .
+				LightTimeout(trafficLight, green) .
+				LightController(green) 
+		+
+		(color == green) ->
+			sum trafficLight: Nat, timeoutColor: LightColorState .
+				LightTimeout(trafficLight, timeoutColor) .
+				(
+					(timeoutColor == green) ->
+						ShowLight(trafficLight, orange) .
+						LightController(orange)
+					+
+					(timeoutColor != green) ->
+						LightController(color)
+				)
+		+
+		(color == orange) ->
+			sum trafficLight: Nat, timeoutColor: LightColorState .
+				LightTimeout(trafficLight, timeoutColor) .
+				(
+					(timeoutColor == orange) ->
+						ShowLight(trafficLight, red) .
+						LightController(red)
+					+
+					(timeoutColor != orange) ->
+						LightController(color)
+				);
 
-init Controller;
+init LightController(red)
+	allow(
+        {commRequestGreen, commCycleDone, RequestGreen, CycleDone, ShowLight, LightTimeout, receiveLightTimeout},
+        comm({
+            sendRequestGreen | receiveRequestGreen -> commRequestGreen,
+            sendCycleDone | receiveCycleDone -> commCycleDone,
+            sendLightTimeout | receiveLightTimeout -> commLightTimeout
+        })
+    );
