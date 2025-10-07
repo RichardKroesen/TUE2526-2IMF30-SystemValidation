@@ -2,9 +2,18 @@
 sort 	
 	LightColorState = struct green | orange | red;
 	WeatherCondition = struct dry | snowing | raining;
+	Array = Nat -> Bool;
 
-map trafficLightAmount:Nat;
-eqn trafficLightAmount = 3;
+map set: Array # Nat -> Array;
+    clear: Array # Nat -> Array;
+ 	trafficLightAmount:Nat;
+
+var a: Array;
+    n: Nat;
+
+eqn set(a, n) = a[n -> true];
+    clear(a, n) = a[n -> false];
+ 	trafficLightAmount = 3;
 
 % Actions Definitions: External 
 act 
@@ -25,34 +34,11 @@ act
 
 % REQUIRED FOR PARSING CHECK! NOT ACTUAL LOGIC YET
 proc 
-	LightController(color: LightColorState) = 
-		(color == red) -> 
-			sum trafficLight: Nat . (trafficLight < trafficLightAmount) -> 
-				RequestGreen(trafficLight) .
-				ShowLight(trafficLight, green) .
-				LightController(green) 
-		+
-		(color == green) ->
-			sum trafficLight: Nat .(trafficLight < trafficLightAmount) -> 
-				LightTimeout(trafficLight, green) .
-				ShowLight(trafficLight, orange) .
-				LightController(orange)
-		+
-		(color == orange) ->
-			sum trafficLight: Nat .(trafficLight < trafficLightAmount) -> 
-				LightTimeout(trafficLight, orange) .
-				ShowLight(trafficLight, red).
-				CycleDone(trafficLight).
-				LightController(red).
+	EV_Component(EV_Booleans: Array) = 
+		sum t:Nat. 
+			EV_Approaching(t)
+%.
+%			EVComponent(set(EVBooleans, t))
 ;
 
-init LightController(red)
-%	allow(
- %       {commRequestGreen, commCycleDone, RequestGreen, CycleDone, ShowLight, LightTimeout, receiveLightTimeout},
- %       comm({
- %           sendRequestGreen | receiveRequestGreen -> commRequestGreen,
- %           sendCycleDone | receiveCycleDone -> commCycleDone,
-%            sendLightTimeout | receiveLightTimeout -> commLightTimeout
- %       })
-%    )
-;
+init EV_Component(false);
