@@ -1,2 +1,5 @@
-forall t: Nat.
-[true.ShowLight(0,red). (!ShowLight(0,green)). ShowLight(0,orange)]false
+forall t: Nat. 
+	[true*.ShowLight(t,red). 
+	(!ShowLight(t,green))*. 
+	ShowLight(t,orange)]
+	false

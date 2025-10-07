@@ -1,4 +1,4 @@
 forall t: Nat.
 	[true*.ShowLight(t, green).
-	ShowLight(t, orange)*.
+	(!ShowLight(t, orange))*.
 	ShowLight(t, red)]false
