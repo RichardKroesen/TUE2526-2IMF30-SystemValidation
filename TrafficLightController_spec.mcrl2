@@ -25,28 +25,26 @@ act
 
 % REQUIRED FOR PARSING CHECK! NOT ACTUAL LOGIC YET
 proc 
-	LightController(color: LightColorState) = 
+	LightController(trafficLight:Nat, color: LightColorState) = 
 		(color == red) -> 
-			sum trafficLight: Nat . (trafficLight < trafficLightAmount) -> 
-				RequestGreen(trafficLight) .
-				ShowLight(trafficLight, green) .
-				LightController(green) 
+			sum anyTrafficLight: Nat . (anyTrafficLight < trafficLightAmount) -> 
+				RequestGreen(anyTrafficLight) .
+				ShowLight(anyTrafficLight, green) .
+				LightController(anyTrafficLight, green) 
 		+
 		(color == green) ->
-			sum trafficLight: Nat .(trafficLight < trafficLightAmount) -> 
-				LightTimeout(trafficLight, green) .
-				ShowLight(trafficLight, orange) .
-				LightController(orange)
+			LightTimeout(trafficLight, green) .
+			ShowLight(trafficLight, orange) .
+			LightController(trafficLight, orange)
 		+
 		(color == orange) ->
-			sum trafficLight: Nat .(trafficLight < trafficLightAmount) -> 
 				LightTimeout(trafficLight, orange) .
 				ShowLight(trafficLight, red).
 				CycleDone(trafficLight).
-				LightController(red).
+				LightController(trafficLight, red)
 ;
 
-init LightController(red)
+init LightController(0, red)
 %	allow(
  %       {commRequestGreen, commCycleDone, RequestGreen, CycleDone, ShowLight, LightTimeout, receiveLightTimeout},
  %       comm({
