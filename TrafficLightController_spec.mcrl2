@@ -26,7 +26,8 @@ act
 
 % Actions Definitions: Internal
 act 
-	EV_Poll, WeatherPoll;
+	WeatherPoll;
+	EV_Poll: Nat;
 	CycleDone: Nat;
 	BadWeather: Bool;
 	RequestGreen: Nat;
@@ -35,10 +36,19 @@ act
 % REQUIRED FOR PARSING CHECK! NOT ACTUAL LOGIC YET
 proc 
 	EV_Component(EV_Booleans: Array) = 
-		sum t:Nat. 
-			EV_Approaching(t)
-%.
-%			EVComponent(set(EVBooleans, t))
+		sum t:Nat. (t < trafficLightAmount) ->
+			EV_Approaching(t).
+			EV_Component(set(EV_Booleans, t))
+		+
+		sum t:Nat. (t < trafficLightAmount) ->
+			EV_Passed(t).
+			EV_Component(clear(EV_Booleans, t))
+		+
+		sum t:Nat. (t < trafficLightAmount) ->
+			EV_Poll(t).
+			EV_Detected(t,EV_Booleans(t)).
+			EV_Component(EV_Booleans)
 ;
 
-init EV_Component(false);
+% Map every number to false at first:
+init EV_Component(lambda f: Nat . false);
