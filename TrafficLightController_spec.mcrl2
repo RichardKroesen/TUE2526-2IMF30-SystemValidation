@@ -56,7 +56,7 @@ act
 	RequestGreen: Nat;
 	EVDetected: Nat # Bool;
 
-% REQUIRED FOR PARSING CHECK! NOT ACTUAL LOGIC YET
+% Process: 
 proc 
 	EVComponent(lanes: TrafficRequestStates) =
 		sum t: Nat. (t < traffic_light_count) ->

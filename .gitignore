@@ -1,3 +1,4 @@
 .direnv
 build
 render.mk
+out/*
