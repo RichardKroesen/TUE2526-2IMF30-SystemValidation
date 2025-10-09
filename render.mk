@@ -1,0 +1,3 @@
+
+RENDERER = xcb
+
