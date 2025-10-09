@@ -1,10 +1,43 @@
+
+% Formatting
+% All actions are PascalCase
+% All functions (mappings) are camelCase
+% All variables are snake_case
+% All procedures are PascalCase
+% All sorts are PascalCase, including enum elements
+
 % Data Types Definitions: 
 sort 	
-	LightColorState = struct green | orange | red;
-	WeatherCondition = struct dry | snowing | raining;
+	LightColorState = struct Green | Orange | Red;
+	WeatherCondition = struct Dry | Snowing | Raining;
 
-map trafficLightAmount: Nat;
-eqn trafficLightAmount = 18;
+sort
+	TrafficRequestStates = List(Bool);
+map
+	requestGreenOnLightP: TrafficRequestStates # Nat # Nat # Bool -> TrafficRequestStates;
+
+	% Mappings
+	requestGreenOnLight: TrafficRequestStates # Nat -> TrafficRequestStates;
+	clearRequestOnLight: TrafficRequestStates # Nat -> TrafficRequestStates;
+var
+	rs: TrafficRequestStates;
+	i: Nat;
+	t: Nat;
+	s: Bool;
+eqn
+	requestGreenOnLightP([], i, t, s) = [];
+	i == t -> requestGreenOnLightP(rs, i, t, s) = requestGreenOnLightP(tail(rs), i + 1, t, s) <| s;
+	i != t -> requestGreenOnLightP(rs, i, t, s) = requestGreenOnLightP(tail(rs), i + 1, t, s) <| head(rs);
+
+	% Mappings
+	requestGreenOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, true);
+	clearRequestOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, false);
+
+% Variables
+map
+ 	traffic_light_count: Nat;
+eqn
+	traffic_light_count = 3;
 
 % Actions Definitions: External 
 act 
@@ -25,23 +58,10 @@ act
 
 % Process: 
 proc 
-	LightController(trafficLight: Nat, color: LightColorState) = 
-		(color == red) -> 
-			sum anyTrafficLight: Nat . (anyTrafficLight < trafficLightAmount) -> 
-				RequestGreen(anyTrafficLight) .
-				ShowLight(anyTrafficLight, green) .
-				LightController(anyTrafficLight, green) 
-		+
-		(color == green) ->
-			LightTimeout(trafficLight, green) .
-			ShowLight(trafficLight, orange) .
-			LightController(trafficLight, orange)
-		+
-		(color == orange) ->
-				LightTimeout(trafficLight, orange) .
-				ShowLight(trafficLight, red) .
-				CycleDone(trafficLight) .
-				LightController(trafficLight, red)
+	EVComponent(lanes: TrafficRequestStates) =
+		sum t: Nat. (t < traffic_light_count) ->
+			EVApproaching(t) .
+			EVComponent(requestGreenOnLight(lanes, t))
 	;
 
-init LightController(0, red);
+init EVComponent([false, false, false]);
