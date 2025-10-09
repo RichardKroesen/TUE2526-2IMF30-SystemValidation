@@ -1,0 +1,5 @@
+forall t: Nat. (val(t < 20)) =>
+	[true*.ShowLight(t,red). 
+	(!ShowLight(t,green))*. 
+	ShowLight(t,orange)]
+	false

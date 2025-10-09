@@ -1,0 +1,47 @@
+% Data Types Definitions: 
+sort 	
+	LightColorState = struct green | orange | red;
+	WeatherCondition = struct dry | snowing | raining;
+
+map trafficLightAmount: Nat;
+eqn trafficLightAmount = 18;
+
+% Actions Definitions: External 
+act 
+	ShowLight: Nat # LightColorState;
+	LightTimeout: Nat # LightColorState;
+	UserDetected: Nat # Bool;
+	EVApproaching: Nat;
+	EVPassed: Nat;
+	Weather: WeatherCondition;
+
+% Actions Definitions: Internal
+act 
+	EVPoll, WeatherPoll;
+	CycleDone: Nat;
+	BadWeather: Bool;
+	RequestGreen: Nat;
+	EVDetected: Nat # Bool;
+
+% Process: 
+proc 
+	LightController(trafficLight: Nat, color: LightColorState) = 
+		(color == red) -> 
+			sum anyTrafficLight: Nat . (anyTrafficLight < trafficLightAmount) -> 
+				RequestGreen(anyTrafficLight) .
+				ShowLight(anyTrafficLight, green) .
+				LightController(anyTrafficLight, green) 
+		+
+		(color == green) ->
+			LightTimeout(trafficLight, green) .
+			ShowLight(trafficLight, orange) .
+			LightController(trafficLight, orange)
+		+
+		(color == orange) ->
+				LightTimeout(trafficLight, orange) .
+				ShowLight(trafficLight, red) .
+				CycleDone(trafficLight) .
+				LightController(trafficLight, red)
+	;
+
+init LightController(0, red);
