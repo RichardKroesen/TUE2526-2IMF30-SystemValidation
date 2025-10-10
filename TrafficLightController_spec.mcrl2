@@ -62,6 +62,15 @@ proc
 		sum t: Nat. (t < traffic_light_count) ->
 			EVApproaching(t) .
 			EVComponent(requestGreenOnLight(lanes, t))
+		+
+		sum t: Nat. (t < traffic_light_count) ->
+			EVPassed(t) .
+			EVComponent(clearRequestOnLight(lanes, t))
+		+
+		sum t: Nat. (t < traffic_light_count) ->
+			EVPoll .
+			EVDetected(t, lanes . t) .
+			EVComponent(lanes)
 	;
 
 init EVComponent([false, false, false]);
