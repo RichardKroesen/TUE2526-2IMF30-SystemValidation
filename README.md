@@ -9,8 +9,9 @@ This repository contains our system validation model and requirements verificati
 1. All actions are PascalCase
 2. All functions (mappings) are camelCase
 3. All variables are snake_case
-4. All procedures are PascalCase
-5. All sorts are PascalCase, including enum elements
+4. All constants are UPPER_SNAKE_CASE
+5. All procedures are PascalCase
+6. All sorts are PascalCase, including enum elements
 
 
 ## Authors

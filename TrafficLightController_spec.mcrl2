@@ -19,18 +19,18 @@ var
 	s: Bool;
 eqn
 	requestGreenOnLightP([], i, t, s) = [];
-	i == t -> requestGreenOnLightP(rs, i, t, s) = s |> requestGreenOnLightP(tail(rs), i + 1, t, s);  
+	i == t -> requestGreenOnLightP(rs, i, t, s) = s |> requestGreenOnLightP(tail(rs), i + 1, t, s);
 	i != t -> requestGreenOnLightP(rs, i, t, s) = head(rs) |> requestGreenOnLightP(tail(rs), i + 1, t, s);
 
 	% Mappings
 	requestGreenOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, true);
 	clearRequestOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, false);
 
-% Variables
+% Constants
 map
- 	traffic_light_count: Nat;
+ 	TRAFFIC_LIGHT_COUNT: Nat;
 eqn
-	traffic_light_count = 3;
+	TRAFFIC_LIGHT_COUNT = 3;
 
 % Actions Definitions: External 
 act 
@@ -52,34 +52,34 @@ act
 
 % Process: 
 proc 
-	LightController(trafficLight: Nat, color: LightColorState) = 
+	LightController(t: Nat, color: LightColorState) =
 		(color == Red) -> 
-			sum anyTrafficLight: Nat . (anyTrafficLight < trafficLightAmount) -> 
-				RequestGreen(anyTrafficLight) .
-				ShowLight(anyTrafficLight, Green) .
-				LightController(anyTrafficLight, Green) 
+			sum any_traffic_light: Nat . (any_traffic_light < TRAFFIC_LIGHT_COUNT) ->
+				RequestGreen(any_traffic_light) .
+				ShowLight(any_traffic_light, Green) .
+				LightController(any_traffic_light, Green)
 		+
 		(color == Green) ->
-			LightTimeout(trafficLight, Green) .
-			ShowLight(trafficLight, Orange) .
-			LightController(trafficLight, Orange)
+			LightTimeout(t, Green) .
+			ShowLight(t, Orange) .
+			LightController(t, Orange)
 		+
 		(color == Orange) ->
-				LightTimeout(trafficLight, Orange) .
-				ShowLight(trafficLight, Red) .
-				CycleDone(trafficLight) .
-				LightController(trafficLight, Red)
+				LightTimeout(t, Orange) .
+				ShowLight(t, Red) .
+				CycleDone(t) .
+				LightController(t, Red)
 	;
 	EVComponent(lanes: TrafficRequestStates) =
-		sum t: Nat. (t < traffic_light_count) ->
+		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) ->
 			EVApproaching(t) .
 			EVComponent(requestGreenOnLight(lanes, t))
 		+
-		sum t: Nat. (t < traffic_light_count) ->
+		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) ->
 			EVPassed(t) .
 			EVComponent(clearRequestOnLight(lanes, t))
 		+
-		sum t: Nat. (t < traffic_light_count) ->
+		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) ->
 			EVPoll(t) .
 			EVDetected(t, lanes . t) .
 			EVComponent(lanes)
