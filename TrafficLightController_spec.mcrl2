@@ -1,11 +1,4 @@
 
-% Formatting
-% 1) All actions are PascalCase
-% 2) All functions (mappings) are camelCase
-% 3) All variables are snake_case
-% 4) All procedures are PascalCase
-% 5) All sorts are PascalCase, including enum elements
-
 % Data Types Definitions: 
 sort 	
 	LightColorState = struct Green | Orange | Red;
