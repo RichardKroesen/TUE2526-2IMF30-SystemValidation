@@ -4,8 +4,33 @@ sort
 	LightColorState = struct Green | Orange | Red;
 	WeatherCondition = struct Dry | Snowing | Raining;
 
-map trafficLightAmount: Nat;
-eqn trafficLightAmount = 16; % 12 Road . + 4 Pedestrian side
+sort
+	TrafficRequestStates = List(Bool);
+map
+	requestGreenOnLightP: TrafficRequestStates # Nat # Nat # Bool -> TrafficRequestStates;
+
+	% Mappings
+	requestGreenOnLight: TrafficRequestStates # Nat -> TrafficRequestStates;
+	clearRequestOnLight: TrafficRequestStates # Nat -> TrafficRequestStates;
+var
+	rs: TrafficRequestStates;
+	i: Nat;
+	t: Nat;
+	s: Bool;
+eqn
+	requestGreenOnLightP([], i, t, s) = [];
+	i == t -> requestGreenOnLightP(rs, i, t, s) = s |> requestGreenOnLightP(tail(rs), i + 1, t, s);  
+	i != t -> requestGreenOnLightP(rs, i, t, s) = head(rs) |> requestGreenOnLightP(tail(rs), i + 1, t, s);
+
+	% Mappings
+	requestGreenOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, true);
+	clearRequestOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, false);
+
+% Variables
+map
+ 	traffic_light_count: Nat;
+eqn
+	traffic_light_count = 3;
 
 % Actions Definitions: External 
 act 
@@ -18,7 +43,8 @@ act
 
 % Actions Definitions: Internal
 act 
-	EVPoll, WeatherPoll;
+	EVPoll: Nat;
+	WeatherPoll;
 	CycleDone: Nat;
 	BadWeather: Bool;
 	RequestGreen: Nat;
@@ -54,7 +80,7 @@ proc
 			EVComponent(clearRequestOnLight(lanes, t))
 		+
 		sum t: Nat. (t < traffic_light_count) ->
-			EVPoll .
+			EVPoll(t) .
 			EVDetected(t, lanes . t) .
 			EVComponent(lanes)
 	;
