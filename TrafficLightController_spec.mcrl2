@@ -1,43 +1,18 @@
 
 % Formatting
-% All actions are PascalCase
-% All functions (mappings) are camelCase
-% All variables are snake_case
-% All procedures are PascalCase
-% All sorts are PascalCase, including enum elements
+% 1) All actions are PascalCase
+% 2) All functions (mappings) are camelCase
+% 3) All variables are snake_case
+% 4) All procedures are PascalCase
+% 5) All sorts are PascalCase, including enum elements
 
 % Data Types Definitions: 
 sort 	
 	LightColorState = struct Green | Orange | Red;
 	WeatherCondition = struct Dry | Snowing | Raining;
 
-sort
-	TrafficRequestStates = List(Bool);
-map
-	requestGreenOnLightP: TrafficRequestStates # Nat # Nat # Bool -> TrafficRequestStates;
-
-	% Mappings
-	requestGreenOnLight: TrafficRequestStates # Nat -> TrafficRequestStates;
-	clearRequestOnLight: TrafficRequestStates # Nat -> TrafficRequestStates;
-var
-	rs: TrafficRequestStates;
-	i: Nat;
-	t: Nat;
-	s: Bool;
-eqn
-	requestGreenOnLightP([], i, t, s) = [];
-	i == t -> requestGreenOnLightP(rs, i, t, s) = requestGreenOnLightP(tail(rs), i + 1, t, s) <| s;
-	i != t -> requestGreenOnLightP(rs, i, t, s) = requestGreenOnLightP(tail(rs), i + 1, t, s) <| head(rs);
-
-	% Mappings
-	requestGreenOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, true);
-	clearRequestOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, false);
-
-% Variables
-map
- 	traffic_light_count: Nat;
-eqn
-	traffic_light_count = 3;
+map trafficLightAmount: Nat;
+eqn trafficLightAmount = 16; % 12 Road . + 4 Pedestrian side
 
 % Actions Definitions: External 
 act 
@@ -58,10 +33,23 @@ act
 
 % Process: 
 proc 
-	EVComponent(lanes: TrafficRequestStates) =
-		sum t: Nat. (t < traffic_light_count) ->
-			EVApproaching(t) .
-			EVComponent(requestGreenOnLight(lanes, t))
+	LightController(trafficLight: Nat, color: LightColorState) = 
+		(color == Red) -> 
+			sum anyTrafficLight: Nat . (anyTrafficLight < trafficLightAmount) -> 
+				RequestGreen(anyTrafficLight) .
+				ShowLight(anyTrafficLight, Green) .
+				LightController(anyTrafficLight, Green) 
+		+
+		(color == Green) ->
+			LightTimeout(trafficLight, Green) .
+			ShowLight(trafficLight, Orange) .
+			LightController(trafficLight, Orange)
+		+
+		(color == Orange) ->
+				LightTimeout(trafficLight, Orange) .
+				ShowLight(trafficLight, Red) .
+				CycleDone(trafficLight) .
+				LightController(trafficLight, Red)
 	;
 
-init EVComponent([false, false, false]);
+init LightController(0, Red);
