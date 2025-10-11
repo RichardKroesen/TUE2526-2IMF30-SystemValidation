@@ -1,10 +1,18 @@
+
+% Formatting
+% 1) All actions are PascalCase
+% 2) All functions (mappings) are camelCase
+% 3) All variables are snake_case
+% 4) All procedures are PascalCase
+% 5) All sorts are PascalCase, including enum elements
+
 % Data Types Definitions: 
 sort 	
-	LightColorState = struct green | orange | red;
-	WeatherCondition = struct dry | snowing | raining;
+	LightColorState = struct Green | Orange | Red;
+	WeatherCondition = struct Dry | Snowing | Raining;
 
 map trafficLightAmount: Nat;
-eqn trafficLightAmount = 18;
+eqn trafficLightAmount = 16; % 12 Road . + 4 Pedestrian side
 
 % Actions Definitions: External 
 act 
@@ -26,22 +34,22 @@ act
 % Process: 
 proc 
 	LightController(trafficLight: Nat, color: LightColorState) = 
-		(color == red) -> 
+		(color == Red) -> 
 			sum anyTrafficLight: Nat . (anyTrafficLight < trafficLightAmount) -> 
 				RequestGreen(anyTrafficLight) .
-				ShowLight(anyTrafficLight, green) .
-				LightController(anyTrafficLight, green) 
+				ShowLight(anyTrafficLight, Green) .
+				LightController(anyTrafficLight, Green) 
 		+
-		(color == green) ->
-			LightTimeout(trafficLight, green) .
-			ShowLight(trafficLight, orange) .
-			LightController(trafficLight, orange)
+		(color == Green) ->
+			LightTimeout(trafficLight, Green) .
+			ShowLight(trafficLight, Orange) .
+			LightController(trafficLight, Orange)
 		+
-		(color == orange) ->
-				LightTimeout(trafficLight, orange) .
-				ShowLight(trafficLight, red) .
+		(color == Orange) ->
+				LightTimeout(trafficLight, Orange) .
+				ShowLight(trafficLight, Red) .
 				CycleDone(trafficLight) .
-				LightController(trafficLight, red)
+				LightController(trafficLight, Red)
 	;
 
-init LightController(0, red);
+init LightController(0, Red);
