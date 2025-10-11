@@ -26,8 +26,8 @@ var
 	s: Bool;
 eqn
 	requestGreenOnLightP([], i, t, s) = [];
-	i == t -> requestGreenOnLightP(rs, i, t, s) = requestGreenOnLightP(tail(rs), i + 1, t, s) <| s;
-	i != t -> requestGreenOnLightP(rs, i, t, s) = requestGreenOnLightP(tail(rs), i + 1, t, s) <| head(rs);
+	i == t -> requestGreenOnLightP(rs, i, t, s) = s |> requestGreenOnLightP(tail(rs), i + 1, t, s);  
+	i != t -> requestGreenOnLightP(rs, i, t, s) = head(rs) |> requestGreenOnLightP(tail(rs), i + 1, t, s);
 
 	% Mappings
 	requestGreenOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, true);
@@ -50,7 +50,8 @@ act
 
 % Actions Definitions: Internal
 act 
-	EVPoll, WeatherPoll;
+	EVPoll: Nat;
+	WeatherPoll;
 	CycleDone: Nat;
 	BadWeather: Bool;
 	RequestGreen: Nat;
@@ -68,7 +69,7 @@ proc
 			EVComponent(clearRequestOnLight(lanes, t))
 		+
 		sum t: Nat. (t < traffic_light_count) ->
-			EVPoll .
+			EVPoll(t) .
 			EVDetected(t, lanes . t) .
 			EVComponent(lanes)
 	;
