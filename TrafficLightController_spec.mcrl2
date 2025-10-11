@@ -1,10 +1,10 @@
 
-% Formatting
-% All actions are PascalCase
-% All functions (mappings) are camelCase
-% All variables are snake_case
-% All procedures are PascalCase
-% All sorts are PascalCase, including enum elements
+% Style Formatting Guide
+% 1) All actions are PascalCase
+% 2) All functions (mappings) are camelCase
+% 3) All variables are snake_case
+% 4) All procedures are PascalCase
+% 5) All sorts are PascalCase, including enum elements
 
 % Data Types Definitions: 
 sort 	
@@ -26,18 +26,18 @@ var
 	s: Bool;
 eqn
 	requestGreenOnLightP([], i, t, s) = [];
-	i == t -> requestGreenOnLightP(rs, i, t, s) = requestGreenOnLightP(tail(rs), i + 1, t, s) <| s;
-	i != t -> requestGreenOnLightP(rs, i, t, s) = requestGreenOnLightP(tail(rs), i + 1, t, s) <| head(rs);
+	i == t -> requestGreenOnLightP(rs, i, t, s) = s |> requestGreenOnLightP(tail(rs), i + 1, t, s);  
+	i != t -> requestGreenOnLightP(rs, i, t, s) = head(rs) |> requestGreenOnLightP(tail(rs), i + 1, t, s);
 
 	% Mappings
 	requestGreenOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, true);
 	clearRequestOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, false);
 
-% Variables
+% Constants
 map
- 	traffic_light_count: Nat;
+ 	trafficLightCount: Nat;
 eqn
-	traffic_light_count = 3;
+	trafficLightCount = 3;
 
 % Actions Definitions: External 
 act 
@@ -50,7 +50,8 @@ act
 
 % Actions Definitions: Internal
 act 
-	EVPoll, WeatherPoll;
+	EVPoll: Nat;
+	WeatherPoll;
 	CycleDone: Nat;
 	BadWeather: Bool;
 	RequestGreen: Nat;
@@ -59,9 +60,18 @@ act
 % Process: 
 proc 
 	EVComponent(lanes: TrafficRequestStates) =
-		sum t: Nat. (t < traffic_light_count) ->
+		sum t: Nat. (t < trafficLightCount) ->
 			EVApproaching(t) .
 			EVComponent(requestGreenOnLight(lanes, t))
+		+
+		sum t: Nat. (t < trafficLightCount) ->
+			EVPassed(t) .
+			EVComponent(clearRequestOnLight(lanes, t))
+		+
+		sum t: Nat. (t < trafficLightCount) ->
+			EVPoll(t) .
+			EVDetected(t, lanes . t) .
+			EVComponent(lanes)
 	;
 
 init EVComponent([false, false, false]);
