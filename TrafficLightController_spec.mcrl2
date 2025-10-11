@@ -33,11 +33,11 @@ eqn
 	requestGreenOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, true);
 	clearRequestOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, false);
 
-% Variables
+% Constants
 map
- 	traffic_light_count: Nat;
+ 	trafficLightCount: Nat;
 eqn
-	traffic_light_count = 3;
+	trafficLightCount = 3;
 
 % Actions Definitions: External 
 act 
@@ -60,15 +60,15 @@ act
 % Process: 
 proc 
 	EVComponent(lanes: TrafficRequestStates) =
-		sum t: Nat. (t < traffic_light_count) ->
+		sum t: Nat. (t < trafficLightCount) ->
 			EVApproaching(t) .
 			EVComponent(requestGreenOnLight(lanes, t))
 		+
-		sum t: Nat. (t < traffic_light_count) ->
+		sum t: Nat. (t < trafficLightCount) ->
 			EVPassed(t) .
 			EVComponent(clearRequestOnLight(lanes, t))
 		+
-		sum t: Nat. (t < traffic_light_count) ->
+		sum t: Nat. (t < trafficLightCount) ->
 			EVPoll(t) .
 			EVDetected(t, lanes . t) .
 			EVComponent(lanes)
