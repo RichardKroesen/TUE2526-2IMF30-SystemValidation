@@ -1,7 +1,5 @@
 .direnv
-<<<<<<< HEAD
 out/*
-=======
 build
 render.mk
->>>>>>> main
+out/*
