@@ -84,5 +84,18 @@ proc
 			EVDetected(t, lanes . t) .
 			EVComponent(lanes)
 	;
+	WeatherComponent(current: WeatherCondition) =
+		sum new: WeatherCondition .
+			Weather(new) .
+			WeatherComponent(new)
+		+
+			WeatherPoll .
+			(
+				(current == Dry) -> BadWeather(false) +
+				(current != Dry) -> BadWeather(true)
+			) .
+			WeatherComponent(current)
+	;
 
-init LightController(0, Red);
+
+init WeatherComponent(Dry);
