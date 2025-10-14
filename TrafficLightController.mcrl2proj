@@ -5,6 +5,7 @@
   <property>R4_1</property>
   <property>R4_2</property>
   <property>R4_3</property>
+  <property>R2</property>
  </properties>
  <jittyc>false</jittyc>
  <linearisation_method>regular</linearisation_method>

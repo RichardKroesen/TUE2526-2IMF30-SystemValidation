@@ -12,7 +12,30 @@ sort
 	WeatherCondition = struct Dry | Snowing | Raining;
 
 map trafficLightAmount: Nat;
+	intersecting: Nat -> List(Nat);
+
 eqn trafficLightAmount = 16; % 12 Road . + 4 Pedestrian side
+	intersecting(0) = [1,2,3];
+	intersecting(1) = [1,2,3];
+	intersecting(2) = [1,2,3];
+	intersecting(3) = [1,2,3];
+	intersecting(4) = [1,2,3];
+	intersecting(5) = [1,2,3];
+	intersecting(6) = [1,2,3];
+	intersecting(7) = [1,2,3];
+	intersecting(8) = [1,2,3];
+	intersecting(9) = [1,2,3];
+	intersecting(10) = [1,2,3];
+	intersecting(11) = [1,2,3];
+	intersecting(12) = [1,2,3];
+	intersecting(13) = [1,2,3];
+	intersecting(14) = [1,2,3];
+	intersecting(15) = [1,2,3];
+	intersecting(16) = [1,2,3];
+	intersecting(17) = [1,2,3];
+	intersecting(18) = [1,2,3];
+	intersecting(19) = [1,2,3];
+
 
 % Actions Definitions: External 
 act 

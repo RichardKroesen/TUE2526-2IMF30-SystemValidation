@@ -1,0 +1,9 @@
+forall t: Nat.
+	forall t': Nat. 
+		(val(t' in intersecting(t) && 
+		t < trafficLightAmount && 
+		t' < trafficLightAmount)) =>
+		[true*.ShowLight(t,Green). 
+		(!ShowLight(t,Red))*. 
+		ShowLight(t',Green)]
+		false

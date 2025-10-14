@@ -1,5 +1,5 @@
-forall t: Nat. (val(t < 20)) =>
-	[true*.ShowLight(t,red). 
-	(!ShowLight(t,green))*. 
-	ShowLight(t,orange)]
+forall t: Nat. (val(t < trafficLightAmount)) =>
+	[true*.ShowLight(t,Red). 
+	(!ShowLight(t,Green))*. 
+	ShowLight(t,Orange)]
 	false
