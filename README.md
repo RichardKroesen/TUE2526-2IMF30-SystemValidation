@@ -4,12 +4,14 @@ This repository contains our system validation model and requirements verificati
 
 ## Style Conventions
 
-**Formatting**: 
-- All actions are PascalCase
-- All functions (mappings) are camelCase
-- All variables are snake_case
-- All procedures are PascalCase
-- All sorts are PascalCase, including enum elements
+**Formatting**:
+
+1. All actions are PascalCase
+2. All functions (mappings) are camelCase
+3. All variables are snake_case
+4. All constants are UPPER_SNAKE_CASE
+5. All procedures are PascalCase
+6. All sorts are PascalCase, including enum elements
 
 
 ## Authors
