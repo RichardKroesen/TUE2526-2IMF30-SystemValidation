@@ -48,8 +48,8 @@ act
 map
  	TRAFFIC_LIGHT_COUNT: Nat;
 eqn
-	TRAFFIC_LIGHT_COUNT = 1;
-	% TRAFFIC_LIGHT_COUNT = 3;
+	% TRAFFIC_LIGHT_COUNT = 16;
+	TRAFFIC_LIGHT_COUNT = 3;
 
 % Data Types Definitions: 
 sort 	
@@ -86,14 +86,13 @@ eqn
 	setUsers(l, t, c) = setUsers'(l, 0, t, c);
 	incUsers(l, t) = nudgeUsers'(l, 0, t, 1);
 	decUsers(l, t) = nudgeUsers'(l, 0, t, -1);
-	defaultUsers = [0, 0, 0, 0, 0, 0];
+	defaultUsers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 % Traffic lights
 sort
 	TrafficLightStates = List(LightColorState);
 map
 	setTrafficLightState': TrafficLightStates # Nat # Nat # LightColorState -> TrafficLightStates;
-	defaultLights': Nat # TrafficLightStates -> TrafficLightStates;
 
 	% Mappings
 	setTrafficLightState: TrafficLightStates # Nat # LightColorState -> TrafficLightStates;
@@ -110,11 +109,7 @@ eqn
 
 	% Mappings
 	setTrafficLightState(ts, t, c) = setTrafficLightState'(ts, 0, t, c);
-
-	i == TRAFFIC_LIGHT_COUNT -> defaultLights'(i, ts) = [];
-	i != TRAFFIC_LIGHT_COUNT -> defaultLights'(i, ts) = defaultLights'(i + 1, Red |> ts);
-	% defaultLights = defaultLights'(0, []);
-	defaultLights = [Red, Red, Red, Red, Red, Red];
+	defaultLights = [Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red];
 
 % Process: 
 proc 
@@ -184,27 +179,23 @@ proc
 	% 2. Pedestrians (when raining)
 	% 3. Regular cars/pedestrians
 	UserDetectionComponent =
+		% BUGS:
+		% Doesn't properly handle priority atm
 		RecvCycleDone .
-		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) -> (
+		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) -> ((
 			SendEVPoll(t) .
 			RecvEVDetected(t, true) .
 			SendRequestGreen(t)
-		)
-		+
-		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) -> (
-			SendWeatherPoll .
-			RecvBadWeather(true) .
+		) + (
 			SendUsersPoll(t) .
 			RecvUsersDetected(t, true) .
+			(
+				SendWeatherPoll .
+				RecvBadWeather(true) .
+				SendRequestGreen(t)
+			) +
 			SendRequestGreen(t)
-		)
-		+
-		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) -> (
-			SendUsersPoll(t) .
-			RecvUsersDetected(t, true) .
-			SendRequestGreen(t)
-		)
-		.
+		)) .
 		UserDetectionComponent
 	;
 
