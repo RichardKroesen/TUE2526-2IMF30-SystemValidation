@@ -52,23 +52,23 @@ act
 
 % Process: 
 proc 
-	LightController(t: Nat, color: LightColorState) =
+	LightComponent(t: Nat, color: LightColorState) =
 		(color == Red) -> 
 			sum any_traffic_light: Nat . (any_traffic_light < TRAFFIC_LIGHT_COUNT) ->
 				RequestGreen(any_traffic_light) .
 				ShowLight(any_traffic_light, Green) .
-				LightController(any_traffic_light, Green)
+				LightComponent(any_traffic_light, Green)
 		+
 		(color == Green) ->
 			LightTimeout(t, Green) .
 			ShowLight(t, Orange) .
-			LightController(t, Orange)
+			LightComponent(t, Orange)
 		+
 		(color == Orange) ->
-				LightTimeout(t, Orange) .
-				ShowLight(t, Red) .
-				CycleDone(t) .
-				LightController(t, Red)
+			LightTimeout(t, Orange) .
+			ShowLight(t, Red) .
+			CycleDone(t) .
+			LightComponent(t, Red)
 	;
 	EVComponent(lanes: TrafficRequestStates) =
 		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) ->
@@ -84,5 +84,18 @@ proc
 			EVDetected(t, lanes . t) .
 			EVComponent(lanes)
 	;
+	WeatherComponent(current: WeatherCondition) =
+		sum new: WeatherCondition .
+			Weather(new) .
+			WeatherComponent(new)
+		+
+			WeatherPoll .
+			(
+				(current == Dry) -> BadWeather(false) +
+				(current != Dry) -> BadWeather(true)
+			) .
+			WeatherComponent(current)
+	;
 
-init LightController(0, Red);
+
+init WeatherComponent(Dry);
