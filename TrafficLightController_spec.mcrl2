@@ -1,36 +1,68 @@
 
+% Internal actions
+act
+	% Weather polling
+	SendWeatherPoll;
+	RecvWeatherPoll;
+	WeatherPoll;
+	SendBadWeather: Bool;
+	RecvBadWeather: Bool;
+	BadWeather: Bool;
+
+	% EV polling
+	SendEVPoll: Nat;
+	RecvEVPoll: Nat;
+	EVPoll: Nat;
+	SendEVDetected: Nat # Bool;
+	RecvEVDetected: Nat # Bool;
+	EVDetected: Nat # Bool;
+
+	% Light timeouts
+	SendRequestGreen: Nat;
+	RecvRequestGreen: Nat;
+	RequestGreen: Nat;
+	SendCycleDone: Nat;
+	RecvCycleDone: Nat;
+	CycleDone: Nat;
+
+% Constants
+map
+ 	TRAFFIC_LIGHT_COUNT: Nat;
+eqn
+	TRAFFIC_LIGHT_COUNT = 6;
+	% TRAFFIC_LIGHT_COUNT = 3;
+
 % Data Types Definitions: 
 sort 	
 	LightColorState = struct Green | Orange | Red;
 	WeatherCondition = struct Dry | Snowing | Raining;
 
 sort
-	TrafficRequestStates = List(Bool);
+	TrafficLightStates = List(LightColorState);
 map
-	requestGreenOnLightP: TrafficRequestStates # Nat # Nat # Bool -> TrafficRequestStates;
+	setTrafficLightState': TrafficLightStates # Nat # Nat # LightColorState -> TrafficLightStates;
+	defaultLights': Nat # TrafficLightStates -> TrafficLightStates;
 
 	% Mappings
-	requestGreenOnLight: TrafficRequestStates # Nat -> TrafficRequestStates;
-	clearRequestOnLight: TrafficRequestStates # Nat -> TrafficRequestStates;
+	setTrafficLightState: TrafficLightStates # Nat # LightColorState -> TrafficLightStates;
+	defaultLights: TrafficLightStates;
 var
-	rs: TrafficRequestStates;
+	ts: TrafficLightStates;
 	i: Nat;
 	t: Nat;
-	s: Bool;
+	c: LightColorState;
 eqn
-	requestGreenOnLightP([], i, t, s) = [];
-	i == t -> requestGreenOnLightP(rs, i, t, s) = s |> requestGreenOnLightP(tail(rs), i + 1, t, s);
-	i != t -> requestGreenOnLightP(rs, i, t, s) = head(rs) |> requestGreenOnLightP(tail(rs), i + 1, t, s);
+	setTrafficLightState'([], i, t, c) = [];
+	i == t -> setTrafficLightState'(ts, i, t, c) = c |> setTrafficLightState'(tail(ts), i + 1, t, c);
+	i != t -> setTrafficLightState'(ts, i, t, c) = head(ts) |> setTrafficLightState'(tail(ts), i + 1, t, c);
 
 	% Mappings
-	requestGreenOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, true);
-	clearRequestOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, false);
+	setTrafficLightState(ts, t, c) = setTrafficLightState'(ts, 0, t, c);
 
-% Constants
-map
- 	TRAFFIC_LIGHT_COUNT: Nat;
-eqn
-	TRAFFIC_LIGHT_COUNT = 3;
+	i == TRAFFIC_LIGHT_COUNT -> defaultLights'(i, ts) = [];
+	i != TRAFFIC_LIGHT_COUNT -> defaultLights'(i, ts) = defaultLights'(i + 1, Red |> ts);
+	% defaultLights = defaultLights'(0, []);
+	defaultLights = [Red, Red, Red, Red, Red, Red];
 
 % Actions Definitions: External 
 act 
@@ -41,61 +73,96 @@ act
 	EVPassed: Nat;
 	Weather: WeatherCondition;
 
-% Actions Definitions: Internal
-act 
-	EVPoll: Nat;
-	WeatherPoll;
-	CycleDone: Nat;
-	BadWeather: Bool;
-	RequestGreen: Nat;
-	EVDetected: Nat # Bool;
-
 % Process: 
 proc 
-	LightComponent(t: Nat, color: LightColorState) =
-		(color == Red) -> 
-			sum any_traffic_light: Nat . (any_traffic_light < TRAFFIC_LIGHT_COUNT) ->
-				RequestGreen(any_traffic_light) .
-				ShowLight(any_traffic_light, Green) .
-				LightComponent(any_traffic_light, Green)
-		+
-		(color == Green) ->
-			LightTimeout(t, Green) .
-			ShowLight(t, Orange) .
-			LightComponent(t, Orange)
-		+
-		(color == Orange) ->
-			LightTimeout(t, Orange) .
-			ShowLight(t, Red) .
-			CycleDone(t) .
-			LightComponent(t, Red)
+	LightComponent(lights: TrafficLightStates) =
+		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) -> (
+			(lights . t == Red) -> 
+				RecvRequestGreen(t) .
+				sum ree: Nat. (ree < TRAFFIC_LIGHT_COUNT) -> (
+					(ree == t) -> ShowLight(ree, Green) +
+					(ree != t) -> ShowLight(ree, Red)
+				) .
+				LightComponent(setTrafficLightState(defaultLights, t, Green))
+			+
+			(lights . t == Green) ->
+				LightTimeout(t, Green) .
+				ShowLight(t, Orange) .
+				LightComponent(setTrafficLightState(lights, t, Orange))
+			+
+			(lights . t == Orange) ->
+				LightTimeout(t, Orange) .
+				ShowLight(t, Red) .
+				SendCycleDone(t) .
+				LightComponent(setTrafficLightState(lights, t, Red))
+		)
 	;
-	EVComponent(lanes: TrafficRequestStates) =
+	EVComponent(lights: TrafficLightStates) =
 		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) ->
 			EVApproaching(t) .
-			EVComponent(requestGreenOnLight(lanes, t))
+			EVComponent(setTrafficLightState(lights, t, Green))
 		+
 		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) ->
 			EVPassed(t) .
-			EVComponent(clearRequestOnLight(lanes, t))
+			EVComponent(setTrafficLightState(lights, t, Red))
 		+
 		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) ->
-			EVPoll(t) .
-			EVDetected(t, lanes . t) .
-			EVComponent(lanes)
+			RecvEVPoll(t) .
+			SendEVDetected(t, lights . t == Green) .
+			EVComponent(lights)
 	;
 	WeatherComponent(current: WeatherCondition) =
 		sum new: WeatherCondition .
 			Weather(new) .
 			WeatherComponent(new)
 		+
-			WeatherPoll .
+			RecvWeatherPoll .
 			(
-				(current == Dry) -> BadWeather(false) +
-				(current != Dry) -> BadWeather(true)
+				(current == Dry) -> SendBadWeather(false) +
+				(current != Dry) -> SendBadWeather(true)
 			) .
 			WeatherComponent(current)
 	;
+	Foo =
+		SendWeatherPoll .
+		RecvBadWeather(true) .
+		SendRequestGreen(0) .
+		Foo
+	;
 
 
-init WeatherComponent(Dry);
+% init WeatherComponent(Dry);
+init
+allow(
+	{
+		SendWeatherPoll,
+		RecvWeatherPoll,
+		WeatherPoll,
+		SendBadWeather,
+		RecvBadWeather,
+		BadWeather,
+		SendEVPoll,
+		RecvEVPoll,
+		EVPoll,
+		SendEVDetected,
+		RecvEVDetected,
+		EVDetected,
+		SendRequestGreen,
+		RecvRequestGreen,
+		RequestGreen,
+		SendCycleDone,
+		RecvCycleDone,
+		CycleDone
+	},
+comm(	{
+		SendWeatherPoll|RecvWeatherPoll -> WeatherPoll,
+		SendBadWeather|RecvBadWeather -> BadWeather,
+
+		SendEVPoll|RecvEVPoll -> EVPoll,
+		SendEVDetected|RecvEVDetected -> EVDetected,
+
+		SendRequestGreen|RecvRequestGreen -> RequestGreen,
+		SendCycleDone|RecvCycleDone -> CycleDone
+	},
+Foo || WeatherComponent(Dry) || LightComponent(defaultLights) || EVComponent(defaultLights)
+));
