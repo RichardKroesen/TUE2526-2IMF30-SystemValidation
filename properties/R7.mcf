@@ -1,0 +1,12 @@
+% ======== Natural Language Specification ========
+% For any traffic light t element of T, where 
+% UserDetected(t, false) occurred, 
+% ShowLight(t, green) may not take place until 
+% UserDetected(t, true) has occurred.
+% ================================================
+
+forall t: Nat. val(t < trafficLightAmount) =>
+    [true* . UserDetected(t, false) .
+     (!UserDetected(t, true))* .
+     ShowLight(t, Green)
+    ] false

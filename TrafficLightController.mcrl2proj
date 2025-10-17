@@ -11,6 +11,9 @@
   <property>R4_1</property>
   <property>R4_2</property>
   <property>R4_3</property>
+  <property>R5</property>
+  <property>R7</property>
+  <property>R9</property>
  </properties>
  <jittyc>false</jittyc>
  <linearisation_method>regular</linearisation_method>

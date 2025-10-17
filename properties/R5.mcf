@@ -1,0 +1,11 @@
+% ======== Natural Language Specification ========
+% When for any traffic light t element of T, 
+% ShowLight(t, green) occurs, ShowLight(t, orange)
+% can not take place until LightTimeoOut(t,green) 
+% or $UserDetected(t, false)$ occurs.
+% ================================================
+
+forall t: Nat. val(t < trafficLightAmount) =>
+    [true* . ShowLight(t, Green) .
+     ( !(LightTimeout(t, Green) || UserDetected(t, false)))* .
+     ShowLight(t, Orange)] false
