@@ -1,3 +1,6 @@
+
+% ------- REQUIREMNETS BASED ON DOC: v1.4 ------ % 
+
 % ======== Natural Language Specification ========
 % For any traffic light t element of T where 
 % EVApproaching(t), the controller shall ensure 
@@ -15,7 +18,8 @@
 forall t: Nat.
 	forall t': Nat. 
      (val(t != t' && 
-     t  < trafficLightAmount && 
-     t' < trafficLightAmount)) =>
-     [true* . EVApproaching(t) . (!EVPassed(t))* .
-     ShowLight(t', Green)] false
+      t  < trafficLightAmount && 
+      t' < trafficLightAmount)) =>
+      [true* . EVApproaching(t) . (!EVPassed(t))* .
+       ShowLight(t', Green)
+      ] false

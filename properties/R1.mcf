@@ -1,4 +1,6 @@
 
+% ------- REQUIREMNETS BASED ON DOC: v1.4 ------ % 
+
 % ======== Natural Language Specification ========
 % After for any traffic light t element of T, 
 % UserDetected(t, true) occurs, eventually,

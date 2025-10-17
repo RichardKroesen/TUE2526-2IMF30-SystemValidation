@@ -1,4 +1,6 @@
 
+% ------- REQUIREMNETS BASED ON DOC: v1.4 ------ % 
+
 % ======== Natural Language Specification ========
 % For any traffic light t element of T where 
 % EVApproaching(t), the controller shall ensure 
