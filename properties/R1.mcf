@@ -1,0 +1,12 @@
+
+% ======== Natural Language Specification ========
+% After for any traffic light t element of T, 
+% UserDetected(t, true) occurs, eventually,
+% ShowLight(t, green) must occur.
+% ================================================
+
+% NOTICE: This property is adapted version of R1, since mCRL2 mentiones otherwise
+% something about monotonicity  
+forall t: Nat. (val(t < trafficLightAmount)) =>
+  [true* . UserDetected(t, true)]
+   mu X. (<ShowLight(t, Green)> true || (([!ShowLight(t, Green)] X) && <true> true))

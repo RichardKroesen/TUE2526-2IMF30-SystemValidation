@@ -1,9 +1,17 @@
+
+% ======== Natural Language Specification ========
+% When for any traffic light t element of T, 
+% ShowLight(t, green) occurs, for all t′ element of 
+% intersecting(t), ShowLight(t′, green) may not occur, 
+% until ShowLight(t, red) occurs.
+% ================================================
+
 forall t: Nat.
 	forall t': Nat. 
-		(val(t' in intersecting(t) && 
+		(val(t != t' && 
 		t < trafficLightAmount && 
 		t' < trafficLightAmount)) =>
-		[true*.ShowLight(t,Green). 
-		(!ShowLight(t,Red))*. 
-		ShowLight(t',Green)]
-		false
+		 [true*.ShowLight(t,Green). 
+		 (!ShowLight(t,Red))*. 
+		 ShowLight(t',Green)]
+		 false

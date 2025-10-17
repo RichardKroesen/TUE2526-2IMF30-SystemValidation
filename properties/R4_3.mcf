@@ -1,3 +1,16 @@
+
+% ======== Natural Language Specification ========
+% Each traffic light t element of T must follow a 
+% predefined sequence of actions in the following 
+% order: ShowLight(t, red), ShowLight(t, green) to 
+% ShowLight(t, orange) back to ShowLight(t, red) 
+% again.
+% ================================================
+
+% ============ NL Sub-Specification ==============
+% Red happens between orange and green.
+% ================================================
+
 forall t: Nat. val(t < trafficLightAmount) =>
 	[true*.ShowLight(t,Orange). 
 	(!ShowLight(t,Red))*. 
