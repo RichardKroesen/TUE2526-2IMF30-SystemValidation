@@ -15,6 +15,6 @@
 % ShowLight(t,green) happens always:
 % ================================================
 
-forall t: Nat. (val(t < trafficLightAmount)) =>
+forall t: Nat. (val(t < TRAFFIC_LIGHT_COUNT)) =>
     [true* . EVApproaching(t)]
      mu X. ( [!ShowLight(t, Green)] X && <true>true )

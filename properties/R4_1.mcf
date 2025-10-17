@@ -13,7 +13,7 @@
 % Green happens between red and orange
 % ================================================
 
-forall t: Nat. (val(t < trafficLightAmount)) =>
+forall t: Nat. (val(t < TRAFFIC_LIGHT_COUNT)) =>
 	[ true*.ShowLight(t, Red). 
 	 (!ShowLight(t, Green))*. 
 	 ShowLight(t, Orange)

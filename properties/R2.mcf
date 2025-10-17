@@ -11,8 +11,8 @@
 forall t: Nat.
 	forall t': Nat. 
 		(val(t != t' && 
-		t < trafficLightAmount && 
-		t' < trafficLightAmount)) =>
+		t < TRAFFIC_LIGHT_COUNT && 
+		t' < TRAFFIC_LIGHT_COUNT)) =>
 		 [true*.ShowLight(t, Green). 
 		 (!ShowLight(t, Red))*. 
 		 ShowLight(t', Green)]

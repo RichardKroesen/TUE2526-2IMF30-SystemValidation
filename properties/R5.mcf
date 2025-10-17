@@ -8,7 +8,7 @@
 % or $UserDetected(t, false)$ occurs.
 % ================================================
 
-forall t: Nat. val(t < trafficLightAmount) =>
+forall t: Nat. val(t < TRAFFIC_LIGHT_COUNT) =>
     [ true* . ShowLight(t, Green) .
      (!(LightTimeout(t, Green) || UserDetected(t, false)))* .
      ShowLight(t, Orange)

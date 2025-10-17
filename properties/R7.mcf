@@ -8,7 +8,7 @@
 % UserDetected(t, true) has occurred.
 % ================================================
 
-forall t: Nat. val(t < trafficLightAmount) =>
+forall t: Nat. val(t < TRAFFIC_LIGHT_COUNT) =>
     [ true* . UserDetected(t, false) .
      (!UserDetected(t, true))* .
      ShowLight(t, Green)
