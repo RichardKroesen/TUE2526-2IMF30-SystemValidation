@@ -1,41 +1,36 @@
 
-% Formatting
-% 1) All actions are PascalCase
-% 2) All functions (mappings) are camelCase
-% 3) All variables are snake_case
-% 4) All procedures are PascalCase
-% 5) All sorts are PascalCase, including enum elements
-
 % Data Types Definitions: 
 sort 	
 	LightColorState = struct Green | Orange | Red;
 	WeatherCondition = struct Dry | Snowing | Raining;
 
-map trafficLightAmount: Nat;
-	intersecting: Nat -> List(Nat);
+sort
+	TrafficRequestStates = List(Bool);
+map
+	requestGreenOnLightP: TrafficRequestStates # Nat # Nat # Bool -> TrafficRequestStates;
 
-eqn trafficLightAmount = 16; % 12 Road . + 4 Pedestrian side
-	intersecting(0) = [1,2,3];
-	intersecting(1) = [1,2,3];
-	intersecting(2) = [1,2,3];
-	intersecting(3) = [1,2,3];
-	intersecting(4) = [1,2,3];
-	intersecting(5) = [1,2,3];
-	intersecting(6) = [1,2,3];
-	intersecting(7) = [1,2,3];
-	intersecting(8) = [1,2,3];
-	intersecting(9) = [1,2,3];
-	intersecting(10) = [1,2,3];
-	intersecting(11) = [1,2,3];
-	intersecting(12) = [1,2,3];
-	intersecting(13) = [1,2,3];
-	intersecting(14) = [1,2,3];
-	intersecting(15) = [1,2,3];
-	intersecting(16) = [1,2,3];
-	intersecting(17) = [1,2,3];
-	intersecting(18) = [1,2,3];
-	intersecting(19) = [1,2,3];
+	% Mappings
+	requestGreenOnLight: TrafficRequestStates # Nat -> TrafficRequestStates;
+	clearRequestOnLight: TrafficRequestStates # Nat -> TrafficRequestStates;
+var
+	rs: TrafficRequestStates;
+	i: Nat;
+	t: Nat;
+	s: Bool;
+eqn
+	requestGreenOnLightP([], i, t, s) = [];
+	i == t -> requestGreenOnLightP(rs, i, t, s) = s |> requestGreenOnLightP(tail(rs), i + 1, t, s);
+	i != t -> requestGreenOnLightP(rs, i, t, s) = head(rs) |> requestGreenOnLightP(tail(rs), i + 1, t, s);
 
+	% Mappings
+	requestGreenOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, true);
+	clearRequestOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, false);
+
+% Constants
+map
+ 	TRAFFIC_LIGHT_COUNT: Nat;
+eqn
+	TRAFFIC_LIGHT_COUNT = 3;
 
 % Actions Definitions: External 
 act 
@@ -48,7 +43,8 @@ act
 
 % Actions Definitions: Internal
 act 
-	EVPoll, WeatherPoll;
+	EVPoll: Nat;
+	WeatherPoll;
 	CycleDone: Nat;
 	BadWeather: Bool;
 	RequestGreen: Nat;
@@ -56,23 +52,50 @@ act
 
 % Process: 
 proc 
-	LightController(trafficLight: Nat, color: LightColorState) = 
+	LightComponent(t: Nat, color: LightColorState) =
 		(color == Red) -> 
-			sum anyTrafficLight: Nat . (anyTrafficLight < trafficLightAmount) -> 
-				RequestGreen(anyTrafficLight) .
-				ShowLight(anyTrafficLight, Green) .
-				LightController(anyTrafficLight, Green) 
+			sum any_traffic_light: Nat . (any_traffic_light < TRAFFIC_LIGHT_COUNT) ->
+				RequestGreen(any_traffic_light) .
+				ShowLight(any_traffic_light, Green) .
+				LightComponent(any_traffic_light, Green)
 		+
 		(color == Green) ->
-			LightTimeout(trafficLight, Green) .
-			ShowLight(trafficLight, Orange) .
-			LightController(trafficLight, Orange)
+			LightTimeout(t, Green) .
+			ShowLight(t, Orange) .
+			LightComponent(t, Orange)
 		+
 		(color == Orange) ->
-				LightTimeout(trafficLight, Orange) .
-				ShowLight(trafficLight, Red) .
-				CycleDone(trafficLight) .
-				LightController(trafficLight, Red)
+			LightTimeout(t, Orange) .
+			ShowLight(t, Red) .
+			CycleDone(t) .
+			LightComponent(t, Red)
+	;
+	EVComponent(lanes: TrafficRequestStates) =
+		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) ->
+			EVApproaching(t) .
+			EVComponent(requestGreenOnLight(lanes, t))
+		+
+		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) ->
+			EVPassed(t) .
+			EVComponent(clearRequestOnLight(lanes, t))
+		+
+		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) ->
+			EVPoll(t) .
+			EVDetected(t, lanes . t) .
+			EVComponent(lanes)
+	;
+	WeatherComponent(current: WeatherCondition) =
+		sum new: WeatherCondition .
+			Weather(new) .
+			WeatherComponent(new)
+		+
+			WeatherPoll .
+			(
+				(current == Dry) -> BadWeather(false) +
+				(current != Dry) -> BadWeather(true)
+			) .
+			WeatherComponent(current)
 	;
 
-init LightController(0, Red);
+
+init WeatherComponent(Dry);
