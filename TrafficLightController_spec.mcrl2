@@ -25,14 +25,6 @@ act
 	RecvCycleDone;
 	CycleDone;
 
-	% Users
-	SendUsersPoll: Nat;
-	RecvUsersPoll: Nat;
-	UsersPoll: Nat;
-	SendUsersDetected: Nat # Bool;
-	RecvUsersDetected: Nat # Bool;
-	UsersDetected: Nat # Bool;
-
 % Actions Definitions: External 
 act 
 	ShowLight: Nat # LightColorState;
@@ -42,14 +34,14 @@ act
 	Weather: WeatherCondition;
 	UserApproaching: Nat;
 	UserPassed: Nat;
-
+	UsersDetected: Nat # Bool;
 
 % Constants
 map
  	TRAFFIC_LIGHT_COUNT: Nat;
 eqn
 	% TRAFFIC_LIGHT_COUNT = 16;
-	TRAFFIC_LIGHT_COUNT = 3;
+	TRAFFIC_LIGHT_COUNT = 4;
 
 % Data Types Definitions: 
 sort 	
@@ -160,48 +152,94 @@ proc
 			) .
 			WeatherComponent(current)
 	;
-	UserManagerComponent(users: Users) =
-		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) -> ((
-			UserApproaching(t) .
-			UserManagerComponent(incUsers(users, t))
-		) + (
-			UserPassed(t) .
-			UserManagerComponent(decUsers(users, t))
-		) + (
-			RecvUsersPoll(t) .
-			SendUsersDetected(t, users . t > 0) .
-			UserManagerComponent(users)
-		))
+
+	RestartCycle(exclude: List(Nat)) =
+		RecvCycleDone .
+		EVChecking(0, exclude)
 	;
 
-	% Once a cycle is done, the order of priority is:
-	% 1. EV vehicles
-	% 2. Pedestrians (when raining)
-	% 3. Regular cars/pedestrians
-	UserDetectionComponent =
-		% BUGS:
-		% Doesn't properly handle priority atm
-		RecvCycleDone .
-		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) -> ((
+	EVChecking(t: Nat, exclude: List(Nat)) =
+		(t in exclude) ->
+			(t == TRAFFIC_LIGHT_COUNT) ->
+				BadWeatherChecking(0, exclude) <>
+				SendEVPoll(t) . (RecvEVDetected(t, true) + RecvEVDetected(t, false)) .
+				EVChecking(t + 1, exclude)
+			<>
+		(t == TRAFFIC_LIGHT_COUNT) ->
+			%BadWeatherChecking(0, exclude) <>
+			RestartCycle([]) <>
 			SendEVPoll(t) .
-			RecvEVDetected(t, true) .
-			SendRequestGreen(t)
-		) + (
-			SendUsersPoll(t) .
-			RecvUsersDetected(t, true) .
-			(
+			((
+				RecvEVDetected(t, true) .
+				SendRequestGreen(t) .
+				% BadWeatherChecking(0)
+				% Once we give someone a green light, restart the cycle
+				RestartCycle(t |> exclude)
+			) + (
+				RecvEVDetected(t, false) .
+				EVChecking(t + 1, exclude)
+			))
+	;
+	
+	BadWeatherChecking(t: Nat, exclude: List(Nat)) =
+		(t in exclude) ->
+			(t == TRAFFIC_LIGHT_COUNT) ->
+				RegularChecking(0, exclude) <>
+				(UsersDetected(t, true) + UsersDetected(t, false)) .
+				EVChecking(t + 1, exclude)
+			<>
+		(t == TRAFFIC_LIGHT_COUNT) ->
+			RegularChecking(0, exclude) <>
+			((
+				UsersDetected(t, true) .
 				SendWeatherPoll .
 				RecvBadWeather(true) .
-				SendRequestGreen(t)
-			) +
-			SendRequestGreen(t)
-		)) .
-		UserDetectionComponent
+				SendRequestGreen(t) .
+				% Once we give someone a green light, restart the cycle
+				RestartCycle(t |> exclude)
+			) + (
+				UsersDetected(t, false) .
+				BadWeatherChecking(t + 1, exclude)
+			))
 	;
 
+	RegularChecking(t: Nat, exclude: List(Nat)) =
+		(t in exclude) ->
+			(t == TRAFFIC_LIGHT_COUNT) ->
+				RestartCycle([]) <>
+				(UsersDetected(t, true) + UsersDetected(t, false)) .
+				RegularChecking(t + 1, exclude)
+			<>
+		((t == TRAFFIC_LIGHT_COUNT) ->
+			RestartCycle([]) <>
+			((
+				UsersDetected(t, true) .
+				SendRequestGreen(t) .
+				RestartCycle(t |> exclude)
+			) + (
+				UsersDetected(t, false) .
+				RegularChecking(t + 1, exclude)
+			))
+		)
+	;
 
 % init WeatherComponent(Dry);
 init
+%hide(
+%	{
+%		SendWeatherPoll,
+%		RecvWeatherPoll,
+%		SendEVDetected,
+%		RecvEVDetected,
+%		SendBadWeather,
+%		RecvBadWeather,
+%		SendCycleDone,
+%		RecvCycleDone,
+%		SendEVPoll,
+%		RecvEVPoll,
+%		SendRequestGreen,
+%		RecvRequestGreen
+%	},
 allow(
 	{
 		SendWeatherPoll,
@@ -222,11 +260,6 @@ allow(
 		SendCycleDone,
 		RecvCycleDone,
 		CycleDone,
-		SendUsersPoll,
-		RecvUsersPoll,
-		UsersPoll,
-		SendUsersDetected,
-		RecvUsersDetected,
 		UsersDetected
 	},
 comm(	{
@@ -237,10 +270,8 @@ comm(	{
 		SendEVDetected|RecvEVDetected -> EVDetected,
 
 		SendRequestGreen|RecvRequestGreen -> RequestGreen,
-		SendCycleDone|RecvCycleDone -> CycleDone,
-
-		SendUsersPoll|RecvUsersPoll -> UsersPoll,
-		SendUsersDetected|RecvUsersDetected -> UsersDetected
+		SendCycleDone|RecvCycleDone -> CycleDone
 	},
-UserDetectionComponent || WeatherComponent(Dry) || LightComponent(defaultLights) || EVComponent(defaultLights) || UserManagerComponent(defaultUsers)
+RestartCycle([]) || WeatherComponent(Dry) || LightComponent(defaultLights) || EVComponent(defaultLights)
+%)));
 ));
