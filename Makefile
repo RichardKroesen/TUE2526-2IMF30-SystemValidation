@@ -4,7 +4,7 @@ OUT = build
 
 include render.mk
 
-.PHONY: lts graph view sim clean
+.PHONY: lts graph view sim clean tau-check
 
 BASE_INPUT = $(basename $(INPUT))
 
@@ -19,10 +19,13 @@ sim: $(OUT)/$(BASE_INPUT).lps
 
 lts: $(OUT)/$(BASE_INPUT).lts
 
-$(OUT)/$(BASE_INPUT).lts: $(OUT)/$(BASE_INPUT).lps
+$(OUT)/$(BASE_INPUT).lts: $(OUT)/$(BASE_INPUT).opt.lps
 	mkdir -p $(OUT)
 	echo $@
-	lps2lts $^ $@
+	lps2lts --confluence $^ $@
+
+$(OUT)/$(BASE_INPUT).opt.lps: $(OUT)/$(BASE_INPUT).lps
+	lpsconfcheck --induction --check-all $^ $@
 
 $(OUT)/$(BASE_INPUT).lps: $(INPUT)
 	mkdir -p $(OUT)
