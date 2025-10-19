@@ -41,7 +41,7 @@ map
  	TRAFFIC_LIGHT_COUNT: Nat;
 eqn
 	% TRAFFIC_LIGHT_COUNT = 16;
-	TRAFFIC_LIGHT_COUNT = 4;
+	TRAFFIC_LIGHT_COUNT = 16;
 
 % Data Types Definitions: 
 sort 	
@@ -153,93 +153,81 @@ proc
 			WeatherComponent(current)
 	;
 
-	RestartCycle(exclude: List(Nat)) =
+	RestartCycle =
 		RecvCycleDone .
-		EVChecking(0, exclude)
+		EVChecking(0)
 	;
 
-	EVChecking(t: Nat, exclude: List(Nat)) =
-		(t in exclude) ->
-			(t == TRAFFIC_LIGHT_COUNT) ->
-				BadWeatherChecking(0, exclude) <>
-				SendEVPoll(t) . (RecvEVDetected(t, true) + RecvEVDetected(t, false)) .
-				EVChecking(t + 1, exclude)
-			<>
+	EVChecking(t: Nat) =
 		(t == TRAFFIC_LIGHT_COUNT) ->
 			%BadWeatherChecking(0, exclude) <>
-			RestartCycle([]) <>
+			RestartCycle <>
 			SendEVPoll(t) .
 			((
 				RecvEVDetected(t, true) .
 				SendRequestGreen(t) .
 				% BadWeatherChecking(0)
 				% Once we give someone a green light, restart the cycle
-				RestartCycle(t |> exclude)
+				RestartCycle
 			) + (
 				RecvEVDetected(t, false) .
-				EVChecking(t + 1, exclude)
+				EVChecking(t + 1)
 			))
 	;
 	
-	BadWeatherChecking(t: Nat, exclude: List(Nat)) =
-		(t in exclude) ->
-			(t == TRAFFIC_LIGHT_COUNT) ->
-				RegularChecking(0, exclude) <>
-				(UsersDetected(t, true) + UsersDetected(t, false)) .
-				EVChecking(t + 1, exclude)
-			<>
+	BadWeatherChecking(t: Nat) =
 		(t == TRAFFIC_LIGHT_COUNT) ->
-			RegularChecking(0, exclude) <>
+			RegularChecking(0) <>
 			((
 				UsersDetected(t, true) .
 				SendWeatherPoll .
 				RecvBadWeather(true) .
 				SendRequestGreen(t) .
 				% Once we give someone a green light, restart the cycle
-				RestartCycle(t |> exclude)
+				RestartCycle
 			) + (
 				UsersDetected(t, false) .
-				BadWeatherChecking(t + 1, exclude)
+				BadWeatherChecking(t + 1)
 			))
 	;
 
-	RegularChecking(t: Nat, exclude: List(Nat)) =
-		(t in exclude) ->
-			(t == TRAFFIC_LIGHT_COUNT) ->
-				RestartCycle([]) <>
-				(UsersDetected(t, true) + UsersDetected(t, false)) .
-				RegularChecking(t + 1, exclude)
-			<>
+	RegularChecking(t: Nat) =
 		((t == TRAFFIC_LIGHT_COUNT) ->
-			RestartCycle([]) <>
+			RestartCycle <>
 			((
 				UsersDetected(t, true) .
 				SendRequestGreen(t) .
-				RestartCycle(t |> exclude)
+				RestartCycle
 			) + (
 				UsersDetected(t, false) .
-				RegularChecking(t + 1, exclude)
+				RegularChecking(t + 1)
 			))
 		)
 	;
 
 % init WeatherComponent(Dry);
 init
-%hide(
-%	{
-%		SendWeatherPoll,
-%		RecvWeatherPoll,
-%		SendEVDetected,
-%		RecvEVDetected,
-%		SendBadWeather,
-%		RecvBadWeather,
-%		SendCycleDone,
-%		RecvCycleDone,
-%		SendEVPoll,
-%		RecvEVPoll,
-%		SendRequestGreen,
-%		RecvRequestGreen
-%	},
+hide(
+	{
+		SendWeatherPoll,
+		RecvWeatherPoll,
+		WeatherPoll,
+		SendBadWeather,
+		RecvBadWeather,
+		BadWeather,
+		SendEVPoll,
+		RecvEVPoll,
+		EVPoll,
+		SendEVDetected,
+		RecvEVDetected,
+		EVDetected,
+		SendRequestGreen,
+		RecvRequestGreen,
+		RequestGreen,
+		SendCycleDone,
+		RecvCycleDone,
+		CycleDone
+	},
 allow(
 	{
 		SendWeatherPoll,
@@ -272,6 +260,6 @@ comm(	{
 		SendRequestGreen|RecvRequestGreen -> RequestGreen,
 		SendCycleDone|RecvCycleDone -> CycleDone
 	},
-RestartCycle([]) || WeatherComponent(Dry) || LightComponent(defaultLights) || EVComponent(defaultLights)
-%)));
-));
+EVChecking(0) || WeatherComponent(Dry) || LightComponent(defaultLights) || EVComponent(defaultLights)
+)));
+%));
