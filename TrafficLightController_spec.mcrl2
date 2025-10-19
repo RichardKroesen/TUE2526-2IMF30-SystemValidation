@@ -41,7 +41,7 @@ map
  	TRAFFIC_LIGHT_COUNT: Nat;
 eqn
 	% TRAFFIC_LIGHT_COUNT = 16;
-	TRAFFIC_LIGHT_COUNT = 16;
+	TRAFFIC_LIGHT_COUNT = 1;
 
 % Data Types Definitions: 
 sort 	
@@ -230,6 +230,15 @@ hide(
 	},
 allow(
 	{
+		ShowLight,
+		LightTimeout,
+		EVApproaching,
+		EVPassed,
+		Weather,
+		UserApproaching,
+		UserPassed,
+		UsersDetected,
+
 		SendWeatherPoll,
 		RecvWeatherPoll,
 		WeatherPoll,
