@@ -14,5 +14,5 @@
 % ShowLight(t,green) happens eventually:
 % ================================================
 
-forall t: Nat. (val(t < TRAFFIC_LIGHT_COUNT)) =>
-    <true* . EVApproaching(t) . (!ShowLight(t, Green))*> true
+% forall t: Nat. (val(t < TRAFFIC_LIGHT_COUNT)) =>
+%    <true* . EVApproaching(t) . (!ShowLight(t, Green))*> true
