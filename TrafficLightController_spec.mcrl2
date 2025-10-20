@@ -41,7 +41,7 @@ map
  	TRAFFIC_LIGHT_COUNT: Nat;
 eqn
 	% TRAFFIC_LIGHT_COUNT = 16;
-	TRAFFIC_LIGHT_COUNT = 1;
+	TRAFFIC_LIGHT_COUNT = 8;
 
 % Data Types Definitions: 
 sort 	
@@ -237,27 +237,8 @@ allow(
 		Weather,
 		UserApproaching,
 		UserPassed,
-		UsersDetected,
-
-		SendWeatherPoll,
-		RecvWeatherPoll,
-		WeatherPoll,
-		SendBadWeather,
-		RecvBadWeather,
-		BadWeather,
-		SendEVPoll,
-		RecvEVPoll,
-		EVPoll,
-		SendEVDetected,
-		RecvEVDetected,
-		EVDetected,
-		SendRequestGreen,
-		RecvRequestGreen,
-		RequestGreen,
-		SendCycleDone,
-		RecvCycleDone,
-		CycleDone,
 		UsersDetected
+		
 	},
 comm(	{
 		SendWeatherPoll|RecvWeatherPoll -> WeatherPoll,

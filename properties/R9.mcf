@@ -1,0 +1,15 @@
+
+% ------- REQUIREMNETS BASED ON DOC: v1.4 ------ % 
+
+% ======== Natural Language Specification ========
+% For any traffic light t element of T, 
+% when ShowLight(t, orange) has been fired, 
+% no other ShowLight(t) may occur until 
+% LightTimeOut(t, orange) has occurred.
+% ================================================
+
+forall t: Nat. val(t < TRAFFIC_LIGHT_COUNT) =>
+    [ true* . ShowLight(t, Orange) .
+     (!LightTimeout(t, Orange))* .
+     (ShowLight(t, Green) + ShowLight(t, Red))
+    ] false

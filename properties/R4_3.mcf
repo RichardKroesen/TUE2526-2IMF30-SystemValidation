@@ -1,5 +1,20 @@
-forall t: Nat. (val(t < 20)) =>
-	[true*.ShowLight(t,orange). 
-	(!ShowLight(t,red))*. 
-	ShowLight(t,green)]
-	false
+
+% ------- REQUIREMNETS BASED ON DOC: v1.4 ------ % 
+
+% ======== Natural Language Specification ========
+% Each traffic light t element of T must follow a 
+% predefined sequence of actions in the following 
+% order: ShowLight(t, red), ShowLight(t, green) to 
+% ShowLight(t, orange) back to ShowLight(t, red) 
+% again.
+% ================================================
+
+% ============ NL Sub-Specification ==============
+% Red happens between orange and green.
+% ================================================
+
+forall t: Nat. val(t < TRAFFIC_LIGHT_COUNT) =>
+	[ true*.ShowLight(t, Orange). 
+	 (!ShowLight(t, Red))*. 
+	 ShowLight(t, Green)
+	] false

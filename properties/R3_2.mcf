@@ -1,0 +1,24 @@
+
+% ------- REQUIREMNETS BASED ON DOC: v1.4 ------ % 
+
+% ======== Natural Language Specification ========
+% For any traffic light t element of T where 
+% EVApproaching(t), the controller shall ensure 
+% that only one EV Traffic light ShowLight(t, green) 
+% occurs, and all other lanes where t′ element of 
+% T \ {t} set ShowLight(t′, red) until active 
+% EVPassed(t).
+% ================================================
+
+% ============ NL Sub-Specification ==============
+% After EmergencyVApproaching(t), ShowLight(t’, red) 
+% happens always for other lanes except t
+% ================================================
+
+forall t: Nat.
+	forall t': Nat. 
+    (val(t' != t && 
+     t < TRAFFIC_LIGHT_COUNT && 
+     t' < TRAFFIC_LIGHT_COUNT)) =>
+     [true* . EVApproaching(t)]
+      mu X. ( [!ShowLight(t', Red)] X && <true>true )

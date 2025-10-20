@@ -1,1 +1,6 @@
+
+% ======== Natural Language Specification ========
+% General property checking. 
+% ================================================
+
 [true*]<true>true
