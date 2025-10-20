@@ -17,6 +17,6 @@
   <property>R9</property>
  </properties>
  <jittyc>false</jittyc>
- <linearisation_method>regular</linearisation_method>
+ <linearisation_method>stack</linearisation_method>
  <enumeration_limit>0</enumeration_limit>
 </root>
