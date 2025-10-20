@@ -31,6 +31,7 @@ act
 	LightTimeout: Nat # LightColorState;
 	EVApproaching: Nat;
 	EVPassed: Nat;
+	EVPresent: Nat; 		% Observation Variable or State
 	Weather: WeatherCondition;
 	UserApproaching: Nat;
 	UserPassed: Nat;
@@ -41,44 +42,33 @@ map
  	TRAFFIC_LIGHT_COUNT: Nat;
 eqn
 	% TRAFFIC_LIGHT_COUNT = 16;
-	TRAFFIC_LIGHT_COUNT = 8;
+	TRAFFIC_LIGHT_COUNT = 6;
 
 % Data Types Definitions: 
 sort 	
 	LightColorState = struct Green | Orange | Red;
 	WeatherCondition = struct Dry | Snowing | Raining;
 
-% User management
 sort
-	Users = List(Nat);
+	UserPresence = List(Bool);
 map
-	setUsers': Users # Nat # Nat # Nat -> Users;
-	nudgeUsers': Users # Nat # Nat # Int -> Users;
-
-	% Mappings
-	setUsers: Users # Nat # Nat -> Users;
-	incUsers: Users # Nat -> Users;
-	decUsers: Users # Nat -> Users;
-	defaultUsers: Users;
+	setUserPresence': UserPresence # Nat # Nat # Bool -> UserPresence;
+	setUserPresence: UserPresence # Nat # Bool -> UserPresence;
+	defaultUserPresence: UserPresence;
 var
-	l: Users;
+	up: UserPresence;
 	i: Nat;
 	t: Nat;
 	c: Nat;
-	b: Int;
+	b: Bool;
 eqn
-	setUsers'([], i, t, c) = [];
-	i == t -> setUsers'(l, i, t, c) = c |> setUsers'(tail(l), i + 1, t, c);
-	i != t -> setUsers'(l, i, t, c) = head(l) |> setUsers'(tail(l), i + 1, t, c);
-	nudgeUsers'([], i, t, b) = [];
-	i == t -> nudgeUsers'(l, i, t, b) = Int2Nat(head(l) + b) |> nudgeUsers'(tail(l), i + 1, t, b);
-	i != t -> nudgeUsers'(l, i, t, b) = head(l) |> nudgeUsers'(tail(l), i + 1, t, b);
+	setUserPresence'([], i, t, b) = [];
+	i == t -> setUserPresence'(up, i, t, b) = b |> setUserPresence'(tail(up), i + 1, t, b);
+	i != t -> setUserPresence'(up, i, t, b) = head(up) |> setUserPresence'(tail(up), i + 1, t, b);
 
 	% Mappings
-	setUsers(l, t, c) = setUsers'(l, 0, t, c);
-	incUsers(l, t) = nudgeUsers'(l, 0, t, 1);
-	decUsers(l, t) = nudgeUsers'(l, 0, t, -1);
-	defaultUsers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	setUserPresence(up, t, b) = setUserPresence'(up, 0, t, b);
+	defaultUserPresence = [false, false];
 
 % Traffic lights
 sort
@@ -89,19 +79,32 @@ map
 	% Mappings
 	setTrafficLightState: TrafficLightStates # Nat # LightColorState -> TrafficLightStates;
 	defaultLights: TrafficLightStates;
+
+	setEVPresentHelper: List(Bool) # Nat # Nat # Bool -> List(Bool);
+	setEVPresent: List(Bool) # Nat # Bool -> List(Bool);
+	defaultEVPresent: List(Bool);
+
 var
 	ts: TrafficLightStates;
+	evs: List(Bool);
 	i: Nat;
 	t: Nat;
 	c: LightColorState;
+	b: Bool;
 eqn
 	setTrafficLightState'([], i, t, c) = [];
 	i == t -> setTrafficLightState'(ts, i, t, c) = c |> setTrafficLightState'(tail(ts), i + 1, t, c);
 	i != t -> setTrafficLightState'(ts, i, t, c) = head(ts) |> setTrafficLightState'(tail(ts), i + 1, t, c);
 
+	setEVPresentHelper([], i, t, b) = [];
+	i == t -> setEVPresentHelper(evs, i, t, b) = b |> setEVPresentHelper(tail(evs), i + 1, t, b);
+	i != t -> setEVPresentHelper(evs, i, t, b) = head(evs) |> setEVPresentHelper(tail(evs), i + 1, t, b);
+
 	% Mappings
 	setTrafficLightState(ts, t, c) = setTrafficLightState'(ts, 0, t, c);
-	defaultLights = [Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red];
+	defaultLights = [Red,Red,Red,Red,Red,Red];
+	defaultEVPresent = [false, false,false, false,false, false];
+	setEVPresent(evs, t, b) = setEVPresentHelper(evs, 0, t, b);
 
 % Process: 
 proc 
@@ -127,17 +130,21 @@ proc
 				LightComponent(setTrafficLightState(lights, t, Red))
 		)
 	;
-	EVComponent(lights: TrafficLightStates) =
+	EVComponent(lights: TrafficLightStates, evPresent: List(Bool)) =
 		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) -> ((
 			EVApproaching(t) .
-			EVComponent(setTrafficLightState(lights, t, Green))
+			EVComponent(setTrafficLightState(lights, t, Green), setEVPresent(evPresent, t, true))
 		) + (
 			EVPassed(t) .
-			EVComponent(setTrafficLightState(lights, t, Red))
+			EVComponent(setTrafficLightState(lights, t, Red), setEVPresent(evPresent, t, false))
 		) + (
 			RecvEVPoll(t) .
 			SendEVDetected(t, lights . t == Green) .
-			EVComponent(lights)
+			EVComponent(lights, evPresent)
+		) + (
+			(evPresent . t == true) -> 
+			EVPresent(t) .
+			EVComponent(lights, evPresent)
 		))
 	;
 	WeatherComponent(current: WeatherCondition) =
@@ -153,56 +160,77 @@ proc
 			WeatherComponent(current)
 	;
 
-	RestartCycle =
+	RestartCycle(users: UserPresence) =
 		RecvCycleDone .
-		EVChecking(0)
+		EVChecking(0, users)
 	;
 
-	EVChecking(t: Nat) =
+	EVChecking(t: Nat, users: UserPresence) =
 		(t == TRAFFIC_LIGHT_COUNT) ->
-			%BadWeatherChecking(0, exclude) <>
-			RestartCycle <>
+			%BadWeatherChecking(0, users) <>
+			RestartCycle(users) <>
 			SendEVPoll(t) .
 			((
 				RecvEVDetected(t, true) .
 				SendRequestGreen(t) .
 				% BadWeatherChecking(0)
 				% Once we give someone a green light, restart the cycle
-				RestartCycle
+				RestartCycle(users)
 			) + (
 				RecvEVDetected(t, false) .
-				EVChecking(t + 1)
-			))
+				EVChecking(t + 1, users)
+			)) +
+		sum u: Nat. (u < TRAFFIC_LIGHT_COUNT) -> (
+			UserApproaching(u) .
+			EVChecking(t, setUserPresence(users, u, true)) +
+			UserPassed(u) .
+			EVChecking(t, setUserPresence(users, u, false))
+		)
 	;
 	
-	BadWeatherChecking(t: Nat) =
+	BadWeatherChecking(t: Nat, users: UserPresence) =
 		(t == TRAFFIC_LIGHT_COUNT) ->
-			RegularChecking(0) <>
+			RegularChecking(0, users) <>
 			((
+				(users . t == true) ->
 				UsersDetected(t, true) .
 				SendWeatherPoll .
 				RecvBadWeather(true) .
 				SendRequestGreen(t) .
 				% Once we give someone a green light, restart the cycle
-				RestartCycle
+				RestartCycle(users)
 			) + (
+				(users . t == false) ->
 				UsersDetected(t, false) .
-				BadWeatherChecking(t + 1)
-			))
+				BadWeatherChecking(t + 1, users)
+			)) +
+		sum u: Nat. (u < TRAFFIC_LIGHT_COUNT) -> (
+			UserApproaching(u) .
+			BadWeatherChecking(t, setUserPresence(users, u, true)) +
+			UserPassed(u) .
+			BadWeatherChecking(t, setUserPresence(users, u, false))
+		)
 	;
 
-	RegularChecking(t: Nat) =
+	RegularChecking(t: Nat, users: UserPresence) =
 		((t == TRAFFIC_LIGHT_COUNT) ->
-			RestartCycle <>
+			RestartCycle(users) <>
 			((
+				(users . t == true) ->
 				UsersDetected(t, true) .
 				SendRequestGreen(t) .
-				RestartCycle
+				RestartCycle(users)
 			) + (
+				(users . t == false) ->
 				UsersDetected(t, false) .
-				RegularChecking(t + 1)
-			))
-		)
+				RegularChecking(t + 1, users)
+			)) +
+		sum u: Nat. (u < TRAFFIC_LIGHT_COUNT) -> (
+			UserApproaching(u) .
+			RegularChecking(t, setUserPresence(users, u, true)) +
+			UserPassed(u) .
+			RegularChecking(t, setUserPresence(users, u, false))
+		))
 	;
 
 % init WeatherComponent(Dry);
@@ -226,7 +254,8 @@ hide(
 		RequestGreen,
 		SendCycleDone,
 		RecvCycleDone,
-		CycleDone
+		CycleDone,
+		EVPresent
 	},
 allow(
 	{
@@ -238,7 +267,6 @@ allow(
 		UserApproaching,
 		UserPassed,
 		UsersDetected
-		
 	},
 comm(	{
 		SendWeatherPoll|RecvWeatherPoll -> WeatherPoll,
@@ -250,6 +278,9 @@ comm(	{
 		SendRequestGreen|RecvRequestGreen -> RequestGreen,
 		SendCycleDone|RecvCycleDone -> CycleDone
 	},
-EVChecking(0) || WeatherComponent(Dry) || LightComponent(defaultLights) || EVComponent(defaultLights)
+	EVChecking(0, defaultUserPresence) || 
+	WeatherComponent(Dry) || 
+	LightComponent(defaultLights) || 
+	EVComponent(defaultLights, defaultEVPresent)
 )));
 %));

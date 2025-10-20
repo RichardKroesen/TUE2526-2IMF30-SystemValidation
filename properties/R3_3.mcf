@@ -1,22 +1,25 @@
 
-% ------- REQUIREMNETS BASED ON DOC: v1.4 ------ % 
+% ------- REQUIREMNETS BASED ON DOC: NO version... ------ % 
 
 % ======== Natural Language Specification ========
-% For any traffic light t element of T where 
-% EVApproaching(t), the controller shall ensure 
-% that only one EV Traffic light ShowLight(t, green) 
-% occurs, and all other lanes where t′ element of 
-% T \ {t} set ShowLight(t′, red) until active 
-% EVPassed(t).
+% When for any traffic light t element of T and 
+% t' in T difference t, EmergencyVApproaching(t)
+% is detected, ShowLight(t, green) occurs 
+% eventually and no ShowLight(t', green) may 
+% occur until EmergencyVehiclePassed(t) occurred.
 % ================================================
 
 % ============ NL Sub-Specification ==============
-% No showlight(red or orange) will occur for t 
-% until EVPassed(t) occurred:
+% No showlight(t’, green) will occur for any t’ 
+% without EV present, until EVPassed(t)
+% occurred:
 % ================================================
 
-forall t: Nat. (val(t < TRAFFIC_LIGHT_COUNT)) =>
-    [true* . EVApproaching(t) . 
-     (!EVPassed(t))* .
-     (ShowLight(t, Orange) || ShowLight(t, Red))
-    ] false
+forall t: Nat.
+  forall t': Nat. 
+    val(t != t' && 
+        t  < TRAFFIC_LIGHT_COUNT && 
+        t' < TRAFFIC_LIGHT_COUNT) => 
+    [true* . EVApproaching(t) .
+     (!EVPassed(t))* . (!EVPresent(t'))* . ShowLight(t', Green)]
+    false
