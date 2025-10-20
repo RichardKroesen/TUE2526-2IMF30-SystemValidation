@@ -1,0 +1,18 @@
+
+% ------- REQUIREMNETS BASED ON DOC: NO version... ------ % 
+
+% ======== Natural Language Specification ========
+% When for any traffic light t element of T and 
+% t' in T difference t, EmergencyVApproaching(t)
+% is detected, ShowLight(t, green) occurs 
+% eventually and no ShowLight(t', green) may 
+% occur until EmergencyVehiclePassed(t) occurred.
+% ================================================
+
+% ============ NL Sub-Specification ==============
+% After EmergencyVApproaching(t), 
+% ShowLight(t,green) happens eventually:
+% ================================================
+
+forall t: Nat. (val(t < TRAFFIC_LIGHT_COUNT)) =>
+    <true* . EVApproaching(t) . (!ShowLight(t, Green))*> true

@@ -1,0 +1,25 @@
+% ------- REQUIREMNETS BASED ON DOC: NO version... ------ % 
+
+% ======== Natural Language Specification ========
+% After for any traffic light t element of T, 
+% UserDetected(t, true)$ and $ShowLight(t, red) occurred, 
+% no t' in intersecting(t), may have more than two 
+% occurrences of $ShowLight(t', green) before 
+% traffic light t has an occurrence of 
+% ShowLight(t, green)$ or $EmergencyVApproaching(t', true).
+% ================================================
+
+forall t: Nat.
+  forall t': Nat. 
+    val(t != t' && 
+        t  < TRAFFIC_LIGHT_COUNT && 
+        t' < TRAFFIC_LIGHT_COUNT) => 
+    [true* . UsersDetected(t, true) . ShowLight(t, Red)] (
+      mu X(n: Nat = 0). (
+        [!(ShowLight(t', Green) || ShowLight(t, Green))] X(n) &&
+        [ShowLight(t', Green)] (X(n+1) && val(n < 2)) &&
+        [ShowLight(t, Green)] X(0) &&
+        <true* . ShowLight(t, Green)> true &&
+        [ShowLight(t, Green)] [!ShowLight(t', Green)] true
+      )
+    )

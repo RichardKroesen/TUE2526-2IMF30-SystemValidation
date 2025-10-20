@@ -36,7 +36,7 @@ eqn
 act 
 	ShowLight: Nat # LightColorState;
 	LightTimeout: Nat # LightColorState;
-	UserDetected: Nat # Bool;
+	UsersDetected: Nat # Bool;
 	EVApproaching: Nat;
 	EVPassed: Nat;
 	Weather: WeatherCondition;
