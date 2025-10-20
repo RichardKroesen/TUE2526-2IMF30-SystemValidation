@@ -1,4 +1,3 @@
-
 INPUT = TrafficLightController_spec.mcrl2
 PROPERTIES = properties
 OUT = build
@@ -9,7 +8,7 @@ CORES = $(shell nproc)
 
 include render.mk
 
-.PHONY: lts graph view sim clean build-properties verify-properties
+.PHONY: lts graph view sim clean build-properties verify-properties verify-counts verify-summary
 
 BASE_INPUT = $(basename $(INPUT))
 
@@ -58,3 +57,34 @@ $(OUT)/$(BASE_INPUT).lps: $(INPUT)
 clean:
 	rm -r $(OUT)
 
+# New target: counts true/false and fails if any false found
+verify-counts: verify-properties
+	@TRUE_COUNT=`grep -h -x true $(OUT)/*.status 2>/dev/null | wc -l`; \
+	FALSE_COUNT=`grep -h -x false $(OUT)/*.status 2>/dev/null | wc -l`; \
+	TOTAL=`expr $$TRUE_COUNT + $$FALSE_COUNT`; \
+	echo ""; \
+	echo "Total properties checked: $$TOTAL"; \
+	echo "  true : $$TRUE_COUNT"; \
+	echo "  false: $$FALSE_COUNT"; \
+	if [ $$FALSE_COUNT -gt 0 ]; then \
+	  echo ""; \
+	  echo "Failed properties:"; \
+	  for f in $(OUT)/*.status; do \
+	    if [ -f $$f ] && grep -q -x false $$f 2>/dev/null; then \
+	      echo " - $$(basename $$f .status)"; \
+	    fi; \
+	  done; \
+	  exit 1; \
+	else \
+	  echo "All properties hold."; \
+	fi
+
+# Lighter summary that doesn't fail (optional)
+verify-summary: verify-properties
+	@TRUE_COUNT=`grep -h -x true $(OUT)/*.status 2>/dev/null | wc -l`; \
+	FALSE_COUNT=`grep -h -x false $(OUT)/*.status 2>/dev/null | wc -l`; \
+	TOTAL=`expr $$TRUE_COUNT + $$FALSE_COUNT`; \
+	echo ""; \
+	echo "Total properties checked: $$TOTAL"; \
+	echo "  true : $$TRUE_COUNT"; \
+	echo "  false: $$FALSE_COUNT"
