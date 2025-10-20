@@ -45,15 +45,6 @@ jobs:
       - name: Build pbes files
         run: make build-properties
 
-      - name: Upload verification artifacts (status + evidence)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: verification-artifacts
-          path: |
-            build/*.status
-            build/*.pbes.evidence.lts
-
       - name: Run property verification and count results
         run: |
           make verify-properties
