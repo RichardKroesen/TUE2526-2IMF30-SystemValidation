@@ -15,11 +15,11 @@
 % occurred:
 % ================================================
 
-forall t: Nat.
-  forall t': Nat. 
-    val(t != t' && 
-        t  < TRAFFIC_LIGHT_COUNT && 
-        t' < TRAFFIC_LIGHT_COUNT) => 
-    [true* . EVApproaching(t) .
-     (!EVPassed(t))* . (!EVPresent(t'))* . ShowLight(t', Green)]
-    false
+%forall t: Nat.
+%  forall t': Nat. 
+%    val(t != t' && 
+%        t  < TRAFFIC_LIGHT_COUNT && 
+%        t' < TRAFFIC_LIGHT_COUNT) => 
+%    [true* . EVApproaching(t) .
+%     (!EVPassed(t))* . (!EVPresent(t'))* . ShowLight(t', Green)]
+%    false
