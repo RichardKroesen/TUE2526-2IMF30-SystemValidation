@@ -46,14 +46,14 @@ $(OUT)/%.pbes: $(OUT)/$(BASE_INPUT).lts $(PROPERTIES)/%.mcf
 
 $(OUT)/$(BASE_INPUT).lts: $(OUT)/$(BASE_INPUT).opt.lps
 	@mkdir -p $(OUT)
-	lps2lts --confluence $^ $@
+	lps2lts -v --confluence $^ $@
 
 $(OUT)/$(BASE_INPUT).opt.lps: $(OUT)/$(BASE_INPUT).lps
-	lpsconfcheck --induction --check-all $^ $@
+	lpsconfcheck -v --induction --check-all $^ $@
 
 $(OUT)/$(BASE_INPUT).lps: $(INPUT)
 	@mkdir -p $(OUT)
-	mcrl22lps $^ $@
+	mcrl22lps -v --lin-method=stack $^ $@
 
 clean:
 	rm -r $(OUT)
