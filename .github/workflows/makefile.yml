@@ -8,7 +8,9 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
+    env:
+      MCRL2_INSTALL: ${{ runner.workspace }}/mcrl2
 
     steps:
       - name: Checkout
@@ -18,48 +20,41 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential git cmake cmake-curses-gui \
-            qt6-base-dev libboost-dev python3 pkg-config ccache
+            qt6-base-dev libboost-dev python3 pkg-config ccache \
+            libglu1-mesa-dev libgl1-mesa-dev mesa-common-dev libx11-dev
 
-      - name: Build and install mCRL2 from source (cached)
-        env:
-          MCRL2_INSTALL: $HOME/mcrl2
+      - name: Build and install mCRL2 from source
         run: |
-          # short-circuit if already installed
-          if [ -x "$MCRL2_INSTALL/bin/mcrl22lps" ]; then
-            echo "mCRL2 already installed in $MCRL2_INSTALL"
+          # Skip rebuild if already present (useful for reruns in same workspace)
+          if [ -x "${MCRL2_INSTALL}/bin/mcrl22lps" ]; then
+            echo "mCRL2 already installed in ${MCRL2_INSTALL}"
             exit 0
           fi
           git clone --depth 1 https://github.com/mCRL2org/mCRL2.git mcrl2-src
           mkdir -p mcrl2-src/build
           cd mcrl2-src/build
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$MCRL2_INSTALL
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="${MCRL2_INSTALL}"
           cmake --build . -- -j$(nproc)
-          cmake --install . --prefix $MCRL2_INSTALL
+          cmake --install . --prefix "${MCRL2_INSTALL}"
 
       - name: Add mCRL2 to PATH
         run: |
-          echo "::add-path::$HOME/mcrl2/bin"
-          export PATH="$HOME/mcrl2/bin:$PATH"
+          echo "${MCRL2_INSTALL}/bin" >> $GITHUB_PATH
           echo "mcrl22lps -> $(which mcrl22lps || true)"
           mcrl22lps --version || true
 
       - name: Build pbes files
-        run: |
-          make build-properties
+        run: make build-properties
 
       - name: Run property verification and count results
         run: |
-          # Run verification (produces $(OUT)/*.status)
           make verify-properties
-
-          # Count exact "true" and "false" lines in status files
           TRUE_COUNT=$(grep -h -x true build/*.status 2>/dev/null | wc -l || true)
           FALSE_COUNT=$(grep -h -x false build/*.status 2>/dev/null | wc -l || true)
           TOTAL=$((TRUE_COUNT + FALSE_COUNT))
           echo "Total properties checked: $TOTAL"
           echo "  true : $TRUE_COUNT"
           echo "  false: $FALSE_COUNT"
-
           if [ "$FALSE_COUNT" -gt 0 ]; then
             echo ""
             echo "Failed properties:"
