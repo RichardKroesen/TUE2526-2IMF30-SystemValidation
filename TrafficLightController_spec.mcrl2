@@ -103,6 +103,25 @@ eqn
 	setTrafficLightState(ts, t, c) = setTrafficLightState'(ts, 0, t, c);
 	defaultLights = [Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red, Red];
 
+map
+	isPedestrianLight: Nat -> Bool;
+
+	% Pedestrian lights are the first n traffic lights, regular lights start after
+	PEDESTRIAN_COUNT: Nat;
+	REGULAR_COUNT: Nat;
+
+	START_REGULAR_LIGHTS: Nat;
+	START_PEDESTRIAN_LIGHTS: Nat;
+var
+	t: Nat;
+eqn
+	isPedestrianLight(t) = t < PEDESTRIAN_COUNT;
+
+	PEDESTRIAN_COUNT = 2;
+
+	START_REGULAR_LIGHTS = PEDESTRIAN_COUNT;
+	START_PEDESTRIAN_LIGHTS = 0;
+
 % Process: 
 proc 
 	LightComponent(lights: TrafficLightStates) =
@@ -160,14 +179,11 @@ proc
 
 	EVChecking(t: Nat) =
 		(t == TRAFFIC_LIGHT_COUNT) ->
-			%BadWeatherChecking(0, exclude) <>
-			RestartCycle <>
+			BadWeatherChecking <>
 			SendEVPoll(t) .
 			((
 				RecvEVDetected(t, true) .
 				SendRequestGreen(t) .
-				% BadWeatherChecking(0)
-				% Once we give someone a green light, restart the cycle
 				RestartCycle
 			) + (
 				RecvEVDetected(t, false) .
@@ -175,34 +191,40 @@ proc
 			))
 	;
 	
-	BadWeatherChecking(t: Nat) =
-		(t == TRAFFIC_LIGHT_COUNT) ->
-			RegularChecking(0) <>
+	BadWeatherChecking =
+		SendWeatherPoll .
+		(
+			RecvBadWeather(true) .
+			CyclePedestrians(START_PEDESTRIAN_LIGHTS) .
+			CycleRegular(START_REGULAR_LIGHTS)
+		) + (
+			RecvBadWeather(false) .
+			CycleRegular(START_REGULAR_LIGHTS) .
+			CyclePedestrians(START_PEDESTRIAN_LIGHTS)
+		) .
+		RestartCycle
+	;
+	CycleRegular(t: Nat) =
+		(t == (START_REGULAR_LIGHTS + (TRAFFIC_LIGHT_COUNT - PEDESTRIAN_COUNT))) ->
 			((
 				UsersDetected(t, true) .
-				SendWeatherPoll .
-				RecvBadWeather(true) .
 				SendRequestGreen(t) .
-				% Once we give someone a green light, restart the cycle
 				RestartCycle
 			) + (
 				UsersDetected(t, false) .
-				BadWeatherChecking(t + 1)
+				CycleRegular(t + 1)
 			))
 	;
-
-	RegularChecking(t: Nat) =
-		((t == TRAFFIC_LIGHT_COUNT) ->
-			RestartCycle <>
+	CyclePedestrians(t: Nat) =
+		(t == PEDESTRIAN_COUNT) ->
 			((
 				UsersDetected(t, true) .
 				SendRequestGreen(t) .
 				RestartCycle
 			) + (
 				UsersDetected(t, false) .
-				RegularChecking(t + 1)
+				CyclePedestrians(t + 1)
 			))
-		)
 	;
 
 % init WeatherComponent(Dry);
@@ -237,8 +259,14 @@ allow(
 		Weather,
 		UserApproaching,
 		UserPassed,
-		UsersDetected
-		
+		UsersDetected,
+
+		WeatherPoll,
+		BadWeather,
+		EVPoll,
+		EVDetected,
+		RequestGreen,
+		CycleDone
 	},
 comm(	{
 		SendWeatherPoll|RecvWeatherPoll -> WeatherPoll,
