@@ -17,7 +17,7 @@ mu X(b: Bool = true).
   forall t: Nat.
   forall p: Nat.
     val(t < TRAFFIC_LIGHT_COUNT && p < PEDESTRIAN_COUNT) =>
-    [ true* . ( Weather(Raining) + Weather(Snowing) ) ]
+    [ true* . ( Weather(Raining) || Weather(Snowing) ) ]
     (
       [ Weather(Dry) ] true
       &&
