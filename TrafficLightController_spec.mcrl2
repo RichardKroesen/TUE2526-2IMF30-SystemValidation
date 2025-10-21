@@ -31,8 +31,6 @@ act
 	LightTimeout: Nat # LightColorState;
 	EVDetected: Nat # Bool;
 	Weather: WeatherCondition;
-	UserApproaching: Nat;
-	UserPassed: Nat;
 	UsersDetected: Nat # Bool;
 
 % Constants
@@ -231,6 +229,11 @@ proc
 init
 hide(
 	{
+		ShowLight,
+		LightTimeout,
+		EVDetected,
+		Weather,
+
 		SendWeatherPoll,
 		RecvWeatherPoll,
 		WeatherPoll,
@@ -257,8 +260,6 @@ allow(
 		LightTimeout,
 		EVDetected,
 		Weather,
-		UserApproaching,
-		UserPassed,
 		UsersDetected,
 
 		% Multi actions

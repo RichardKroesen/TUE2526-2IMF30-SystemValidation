@@ -49,10 +49,10 @@ $(OUT)/%.pbes: $(OUT)/$(BASE_INPUT).lts $(PROPERTIES)/%.mcf
 
 $(OUT)/$(BASE_INPUT).lts: $(OUT)/$(BASE_INPUT).opt.lps
 	@mkdir -p $(OUT)
-	lps2lts -v --confluence $^ $@
+	lps2lts -v --cached --confluence $^ $@
 
 $(OUT)/$(BASE_INPUT).opt.lps: $(OUT)/$(BASE_INPUT).lps
-	lpsconfcheck -v --induction --check-all $^ $@
+	lpsconfcheck -v --counter-example --induction --check-all $^ $@ |& tee $(OUT)/$(BASE_INPUT).tau-counter.tmp
 
 $(OUT)/$(BASE_INPUT).lps: $(INPUT)
 	@mkdir -p $(OUT)
