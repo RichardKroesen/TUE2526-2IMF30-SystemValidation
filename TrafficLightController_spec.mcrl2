@@ -25,6 +25,10 @@ act
 	RecvCycleDone;
 	CycleDone;
 
+	FooA;
+	FooB;
+	FOO_RESTARTED;
+
 % Actions Definitions: External 
 act 
 	ShowLight: Nat # LightColorState;
@@ -40,7 +44,7 @@ map
  	TRAFFIC_LIGHT_COUNT: Nat;
 eqn
 	% TRAFFIC_LIGHT_COUNT = 16;
-	TRAFFIC_LIGHT_COUNT = 4;
+	TRAFFIC_LIGHT_COUNT = 3;
 
 % Data Types Definitions: 
 sort 	
@@ -159,19 +163,18 @@ proc
 		))
 	;
 	WeatherComponent(current: WeatherCondition) =
-		sum new: WeatherCondition .
+		(sum new: WeatherCondition .
 			Weather(new) .
 			WeatherComponent(new)
-		+
+		) + (
 			RecvWeatherPoll .
-			(
-				(current == Dry) -> SendBadWeather(false) +
-				(current != Dry) -> SendBadWeather(true)
-			) .
+			SendBadWeather(current != Dry) .
 			WeatherComponent(current)
+		)
 	;
 
 	RestartCycle =
+		FOO_RESTARTED .
 		RecvCycleDone .
 		EVChecking(0)
 	;
@@ -192,7 +195,7 @@ proc
 	
 	BadWeatherChecking =
 		SendWeatherPoll .
-		(
+		((
 			RecvBadWeather(true) .
 			CyclePedestrians(START_PEDESTRIAN_LIGHTS) .
 			CycleRegular(START_REGULAR_LIGHTS)
@@ -200,11 +203,11 @@ proc
 			RecvBadWeather(false) .
 			CycleRegular(START_REGULAR_LIGHTS) .
 			CyclePedestrians(START_PEDESTRIAN_LIGHTS)
-		) .
+		)) .
 		RestartCycle
 	;
 	CycleRegular(t: Nat) =
-		(t == (START_REGULAR_LIGHTS + (TRAFFIC_LIGHT_COUNT - PEDESTRIAN_COUNT))) ->
+		(t != (START_REGULAR_LIGHTS + (TRAFFIC_LIGHT_COUNT - PEDESTRIAN_COUNT))) ->
 			((
 				UsersDetected(t, true) .
 				SendRequestGreen(t) .
@@ -215,7 +218,7 @@ proc
 			))
 	;
 	CyclePedestrians(t: Nat) =
-		(t == PEDESTRIAN_COUNT) ->
+		(t != PEDESTRIAN_COUNT) ->
 			((
 				UsersDetected(t, true) .
 				SendRequestGreen(t) .
@@ -228,29 +231,33 @@ proc
 
 % init WeatherComponent(Dry);
 init
-hide(
-	{
-		SendWeatherPoll,
-		RecvWeatherPoll,
-		WeatherPoll,
-		SendBadWeather,
-		RecvBadWeather,
-		BadWeather,
-		SendEVPoll,
-		RecvEVPoll,
-		EVPoll,
-		SendEVPresent,
-		RecvEVPresent,
-		EVPresent,
-		SendRequestGreen,
-		RecvRequestGreen,
-		RequestGreen,
-		SendCycleDone,
-		RecvCycleDone,
-		CycleDone
-	},
+%hide(
+%	{
+%		SendWeatherPoll,
+%		RecvWeatherPoll,
+%		WeatherPoll,
+%		SendBadWeather,
+%		RecvBadWeather,
+%		BadWeather,
+%		SendEVPoll,
+%		RecvEVPoll,
+%		EVPoll,
+%		SendEVPresent,
+%		RecvEVPresent,
+%		EVPresent,
+%		SendRequestGreen,
+%		RecvRequestGreen,
+%		RequestGreen,
+%		SendCycleDone,
+%		RecvCycleDone,
+%		CycleDone
+%	},
 allow(
 	{
+		FooA,
+		FooB,
+		FOO_RESTARTED,
+
 		% External actions
 		ShowLight,
 		LightTimeout,
@@ -279,5 +286,5 @@ comm(	{
 		SendCycleDone|RecvCycleDone -> CycleDone
 	},
 EVChecking(0) || WeatherComponent(Dry) || LightComponent(defaultLights) || EVComponent(defaultLights)
-)));
-%));
+%)));
+));
