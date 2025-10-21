@@ -25,10 +25,6 @@ act
 	RecvCycleDone;
 	CycleDone;
 
-	FooA;
-	FooB;
-	FOO_RESTARTED;
-
 % Actions Definitions: External 
 act 
 	ShowLight: Nat # LightColorState;
@@ -44,7 +40,7 @@ map
  	TRAFFIC_LIGHT_COUNT: Nat;
 eqn
 	% TRAFFIC_LIGHT_COUNT = 16;
-	TRAFFIC_LIGHT_COUNT = 3;
+	TRAFFIC_LIGHT_COUNT = 4;
 
 % Data Types Definitions: 
 sort 	
@@ -131,10 +127,7 @@ proc
 		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) -> (
 			(lights . t == Red) -> 
 				RecvRequestGreen(t) .
-				sum ree: Nat. (ree < TRAFFIC_LIGHT_COUNT) -> (
-					(ree == t) -> ShowLight(ree, Green) +
-					(ree != t) -> ShowLight(ree, Red)
-				) .
+				ShowLight(t, Green) .
 				LightComponent(setTrafficLightState(defaultLights, t, Green))
 			+
 			(lights . t == Green) ->
@@ -174,7 +167,6 @@ proc
 	;
 
 	RestartCycle =
-		FOO_RESTARTED .
 		RecvCycleDone .
 		EVChecking(0)
 	;
@@ -254,10 +246,6 @@ init
 %	},
 allow(
 	{
-		FooA,
-		FooB,
-		FOO_RESTARTED,
-
 		% External actions
 		ShowLight,
 		LightTimeout,
