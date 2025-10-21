@@ -38,7 +38,10 @@ verify-%: $(OUT)/%.status
 	@echo "PROPERTY $* EVALUATES TO -> $(shell cat $^)"
 	@echo ""
 
-$(OUT)/%.status: $(OUT)/$(BASE_INPUT).lts $(OUT)/%.pbes
+show-counter-%: $(OUT)/%.pbes.evidence.lts
+	QT_QPA_PLATFORM=$(RENDERER) ltsgraph $^
+
+$(OUT)/%.pbes.evidence.lts $(OUT)/%.status: $(OUT)/$(BASE_INPUT).lts $(OUT)/%.pbes
 	pbessolve -v --in=pbes --threads=$(CORES) --file=$< $(OUT)/$*.pbes > $@
 
 $(OUT)/%.pbes: $(OUT)/$(BASE_INPUT).lts $(PROPERTIES)/%.mcf
