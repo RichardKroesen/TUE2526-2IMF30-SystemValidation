@@ -15,4 +15,4 @@
 % ================================================
 
 forall t: Nat. (val(t < TRAFFIC_LIGHT_COUNT)) =>
-    <true* . EVApproaching(t) . (!ShowLight(t, Green))*> true
+    <true* . EVDetected(t, true) . (!ShowLight(t, Green))*> true

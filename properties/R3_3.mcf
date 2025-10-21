@@ -20,6 +20,6 @@ forall t: Nat.
     val(t != t' && 
         t  < TRAFFIC_LIGHT_COUNT && 
         t' < TRAFFIC_LIGHT_COUNT) => 
-    [true* . EVApproaching(t) .
-     (!EVPassed(t))* . (!EVPresent(t'))* . ShowLight(t', Green)]
+    [true* . EVDetected(t, true) .
+     (!EVDetected(t, true))* . (!EVPresent(t', true))* . ShowLight(t', Green)]
     false
