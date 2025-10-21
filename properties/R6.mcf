@@ -13,15 +13,33 @@
 % UserDetected(p, true) happens again.
 % ================================================
 
-forall t: Nat.
-  forall p: Nat. 
-    val(t != p && 
-        t  < TRAFFIC_LIGHT_COUNT && 
-        p < TRAFFIC_LIGHT_COUNT) => (
-  [true* . (BadWeather(true) || UsersDetected(p, true))]
-    mu X(b: Bool = false). (
-      [!(ShowLight(p, Green) || ShowLight(t, Green))] X(b) &&
-      [ShowLight(p, Green)] (val(b == false) && X(true)) &&
-      [ShowLight(t, Green)] X(false)
+mu X(b: Bool = true).
+  forall t: Nat.
+  forall p: Nat.
+    val(t < TRAFFIC_LIGHT_COUNT && p < PEDESTRIAN_COUNT) =>
+    [ true* . ( Weather(Raining) + Weather(Snowing) ) ]
+    (
+      [ Weather(Dry) ] true
+      &&
+      [ !( ShowLight(t,Green) || ShowLight(p,Green) || Weather(Dry) ) ] X(b)
+      &&
+      ( b =>
+        forall t2: Nat.
+          val(t2 < TRAFFIC_LIGHT_COUNT && t2 != p) =>
+          [ ShowLight(t2,Green) ]
+            ( ( !UserPresent(p) => X(b) )
+              ||
+              ( EVPresent(t2) => X(b) )
+            )
+      )
+      &&
+      ( b => [ ShowLight(p,Green) ] X(false) )
+      &&
+      ( !b =>
+        forall t2: Nat.
+          val(t2 < TRAFFIC_LIGHT_COUNT && t2 != p) =>
+          [ ShowLight(t2,Green) ] X(true)
+      )
+      &&
+      ( !b => [ ShowLight(p,Green) ] X(false) )
     )
-)

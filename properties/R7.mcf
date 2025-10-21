@@ -10,6 +10,6 @@
 
 forall t: Nat. val(t < TRAFFIC_LIGHT_COUNT) =>
     [ true* . UsersDetected(t, false) .
-     (!UsersDetected(t, true))* .
+     (!(UsersDetected(t, true) && EVDetected(t,false))* .
      ShowLight(t, Green)
     ] false
