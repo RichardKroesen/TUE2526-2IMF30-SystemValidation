@@ -13,9 +13,9 @@ act
 	SendEVPoll: Nat;
 	RecvEVPoll: Nat;
 	EVPoll: Nat;
-	SendEVDetected: Nat # Bool;
-	RecvEVDetected: Nat # Bool;
-	EVDetected: Nat # Bool;
+	SendEVPresent: Nat # Bool;
+	RecvEVPresent: Nat # Bool;
+	EVPresent: Nat # Bool;
 
 	% Light timeouts
 	SendRequestGreen: Nat;
@@ -29,8 +29,7 @@ act
 act 
 	ShowLight: Nat # LightColorState;
 	LightTimeout: Nat # LightColorState;
-	EVApproaching: Nat;
-	EVPassed: Nat;
+	EVDetected: Nat # Bool;
 	Weather: WeatherCondition;
 	UserApproaching: Nat;
 	UserPassed: Nat;
@@ -41,7 +40,7 @@ map
  	TRAFFIC_LIGHT_COUNT: Nat;
 eqn
 	% TRAFFIC_LIGHT_COUNT = 16;
-	TRAFFIC_LIGHT_COUNT = 8;
+	TRAFFIC_LIGHT_COUNT = 4;
 
 % Data Types Definitions: 
 sort 	
@@ -148,14 +147,14 @@ proc
 	;
 	EVComponent(lights: TrafficLightStates) =
 		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) -> ((
-			EVApproaching(t) .
+			EVDetected(t, true) .
 			EVComponent(setTrafficLightState(lights, t, Green))
 		) + (
-			EVPassed(t) .
+			EVDetected(t, false) .
 			EVComponent(setTrafficLightState(lights, t, Red))
 		) + (
 			RecvEVPoll(t) .
-			SendEVDetected(t, lights . t == Green) .
+			SendEVPresent(t, lights . t == Green) .
 			EVComponent(lights)
 		))
 	;
@@ -182,11 +181,11 @@ proc
 			BadWeatherChecking <>
 			SendEVPoll(t) .
 			((
-				RecvEVDetected(t, true) .
+				RecvEVPresent(t, true) .
 				SendRequestGreen(t) .
 				RestartCycle
 			) + (
-				RecvEVDetected(t, false) .
+				RecvEVPresent(t, false) .
 				EVChecking(t + 1)
 			))
 	;
@@ -240,9 +239,9 @@ hide(
 		SendEVPoll,
 		RecvEVPoll,
 		EVPoll,
-		SendEVDetected,
-		RecvEVDetected,
-		EVDetected,
+		SendEVPresent,
+		RecvEVPresent,
+		EVPresent,
 		SendRequestGreen,
 		RecvRequestGreen,
 		RequestGreen,
@@ -252,19 +251,20 @@ hide(
 	},
 allow(
 	{
+		% External actions
 		ShowLight,
 		LightTimeout,
-		EVApproaching,
-		EVPassed,
+		EVDetected,
 		Weather,
 		UserApproaching,
 		UserPassed,
 		UsersDetected,
 
+		% Multi actions
 		WeatherPoll,
 		BadWeather,
 		EVPoll,
-		EVDetected,
+		EVPresent,
 		RequestGreen,
 		CycleDone
 	},
@@ -273,7 +273,7 @@ comm(	{
 		SendBadWeather|RecvBadWeather -> BadWeather,
 
 		SendEVPoll|RecvEVPoll -> EVPoll,
-		SendEVDetected|RecvEVDetected -> EVDetected,
+		SendEVPresent|RecvEVPresent -> EVPresent,
 
 		SendRequestGreen|RecvRequestGreen -> RequestGreen,
 		SendCycleDone|RecvCycleDone -> CycleDone
