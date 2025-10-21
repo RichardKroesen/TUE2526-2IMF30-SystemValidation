@@ -165,86 +165,91 @@ proc
 			WeatherComponent(current)
 		)
 	;
-
-	RestartCycle =
-		RecvCycleDone .
-		BadWeatherChecking
-	;
-
-	EVChecking(t: Nat) =
-		(t != TRAFFIC_LIGHT_COUNT) ->
-			SendEVPoll(t) .
-			((
-				RecvEVPresent(t, true) .
-				SendRequestGreen(t) .
-				RestartCycle
-			) + (
-				RecvEVPresent(t, false) .
-				EVChecking(t + 1)
-			))
-	;
-	
-	BadWeatherChecking =
+	UserDetectionComponent =
 		SendWeatherPoll .
 		((
 			RecvBadWeather(true) .
-			CyclePedestrians(START_PEDESTRIAN_LIGHTS) .
-			CycleRegular(START_REGULAR_LIGHTS)
+			CyclePedestrians .
+			CycleRegular
 		) + (
 			RecvBadWeather(false) .
-			CycleRegular(START_REGULAR_LIGHTS) .
-			CyclePedestrians(START_PEDESTRIAN_LIGHTS)
+			CycleRegular .
+			CyclePedestrians
 		)) .
-		RestartCycle
+		UserDetectionComponent
 	;
-	CycleRegular(t: Nat) =
-		EVChecking(0) .
-		(t != (START_REGULAR_LIGHTS + (TRAFFIC_LIGHT_COUNT - PEDESTRIAN_COUNT))) ->
-			((
-				UsersDetected(t, true) .
-				SendRequestGreen(t) .
-				RestartCycle
-			) + (
-				UsersDetected(t, false) .
-				CycleRegular(t + 1)
-			))
+
+	
+	EVChecking'(t: Nat) =
+		SendEVPoll(t) .
+		((
+			RecvEVPresent(t, true) .
+			SendRequestGreen(t) .
+			RecvCycleDone
+		) + (
+			RecvEVPresent(t, false)
+		))
 	;
-	CyclePedestrians(t: Nat) =
-		EVChecking(0) .
-		(t != PEDESTRIAN_COUNT) ->
-			((
-				UsersDetected(t, true) .
-				SendRequestGreen(t) .
-				RestartCycle
-			) + (
-				UsersDetected(t, false) .
-				CyclePedestrians(t + 1)
-			))
+	EVChecking =
+		EVChecking'(0) .
+		EVChecking'(1) .
+		EVChecking'(2) .
+		EVChecking'(3)
+	;
+	
+	CycleRegular'(t: Nat) =
+		EVChecking .
+		((
+			UsersDetected(t, true) .
+			SendRequestGreen(t) .
+			RecvCycleDone
+		) + (
+			UsersDetected(t, false)
+		))
+	;
+	CycleRegular =
+		CycleRegular'(2) .
+		CycleRegular'(3)
+	;
+
+	CyclePedestrians'(t: Nat) =
+		EVChecking .
+		((
+			UsersDetected(t, true) .
+			SendRequestGreen(t) .
+			RecvCycleDone
+		) + (
+			UsersDetected(t, false)
+		))
+	;
+	CyclePedestrians =
+		CyclePedestrians'(0) .
+		CyclePedestrians'(1)
 	;
 
 % init WeatherComponent(Dry);
 init
-%hide(
-%	{
-%		SendWeatherPoll,
-%		RecvWeatherPoll,
-%		WeatherPoll,
-%		SendBadWeather,
-%		RecvBadWeather,
-%		BadWeather,
-%		SendEVPoll,
-%		RecvEVPoll,
-%		EVPoll,
-%		SendEVPresent,
-%		RecvEVPresent,
-%		EVPresent,
-%		SendRequestGreen,
-%		RecvRequestGreen,
-%		RequestGreen,
-%		SendCycleDone,
-%		RecvCycleDone,
-%		CycleDone
-%	},
+hide(
+	{
+		SendWeatherPoll,
+		RecvWeatherPoll,
+		WeatherPoll,
+		SendBadWeather,
+		RecvBadWeather,
+		BadWeather,
+		SendEVPoll,
+		RecvEVPoll,
+		EVPoll,
+		SendEVPresent,
+		RecvEVPresent,
+		EVPresent,
+		SendRequestGreen,
+		RecvRequestGreen,
+		RequestGreen,
+		SendCycleDone,
+		RecvCycleDone,
+		CycleDone
+	},
 allow(
 	{
 		% External actions
@@ -274,6 +279,6 @@ comm(	{
 		SendRequestGreen|RecvRequestGreen -> RequestGreen,
 		SendCycleDone|RecvCycleDone -> CycleDone
 	},
-BadWeatherChecking || WeatherComponent(Dry) || LightComponent(defaultLights) || EVComponent(defaultLights)
-%)));
-));
+UserDetectionComponent || WeatherComponent(Dry) || LightComponent(defaultLights) || EVComponent(defaultLights)
+)));
+%));
