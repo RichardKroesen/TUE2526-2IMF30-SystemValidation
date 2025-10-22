@@ -1,4 +1,5 @@
-% ------- REQUIREMNETS BASED ON DOC: NO version... ------ % 
+
+% ------- REQUIREMNETS BASED ON DOC: v1.6 ------ % 
 
 % ======== Natural Language Specification ========
 % After for any traffic light t element of T, 
@@ -14,12 +15,18 @@ forall t: Nat.
     val(t != t' && 
         t  < TRAFFIC_LIGHT_COUNT && 
         t' < TRAFFIC_LIGHT_COUNT) => 
-    [true* . UsersDetected(t, true) . ShowLight(t, Red)] (
-      mu X(n: Nat = 0). (
-        [!(ShowLight(t', Green) || ShowLight(t, Green))] X(n) &&
-        [ShowLight(t', Green)] (X(n+1) && val(n < 2)) &&
-        [ShowLight(t, Green)] X(0) &&
-        <true* . ShowLight(t, Green)> true &&
-        [ShowLight(t, Green)] [!ShowLight(t', Green)] true
-      )
-    )
+
+  nu X(n : Nat = 0, PPresent : Bool = false, LightRed : Bool = false).
+    [ShowLight(t, Red)]       X(n, PPresent, true) &&
+    [ShowLight(t, Green)]     X(0, PPresent, false) &&
+    [UsersDetected(t, true)]  X(n, true, LightRed) &&
+    [UsersDetected(t, false)] X(n, false, LightRed) &&
+    [EVDetected(t', true)]    X(0, PPresent, LightRed) &&
+    (val(LightRed && PPresent) => [ShowLight(t', Green)] 
+                              X(n + 1, PPresent, LightRed)) &&
+    (val(!(LightRed && PPresent)) => [ShowLight(t', Green)] 
+                              X(n, PPresent, LightRed)) &&
+    val(n < 3) &&
+    [!(ShowLight(t, Red) || ShowLight(t, Green) || UsersDetected(t, true) ||
+       UsersDetected(t, false) || ShowLight(t', Green) || EVDetected(t', true))]
+      X(n, PPresent, LightRed)

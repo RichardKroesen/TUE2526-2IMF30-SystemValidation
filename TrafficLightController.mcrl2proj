@@ -3,6 +3,7 @@
  <properties>
   <property>Deadlock_Free</property>
   <property>R1</property>
+  <property>R1_weak</property>
   <property>R2</property>
   <property>R3_1</property>
   <property>R3_2</property>

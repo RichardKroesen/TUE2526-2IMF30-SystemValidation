@@ -1,5 +1,5 @@
 
-% ------- REQUIREMNETS BASED ON DOC: v1.4 ------ % 
+% ------- REQUIREMNETS BASED ON DOC: v1.6 ------ % 
 
 % ======== Natural Language Specification ========
 % When observation variable badW eather = true 
@@ -13,15 +13,33 @@
 % UserDetected(p, true) happens again.
 % ================================================
 
-forall t: Nat.
-  forall p: Nat. 
-    val(t != p && 
-        t  < TRAFFIC_LIGHT_COUNT && 
-        p < TRAFFIC_LIGHT_COUNT) => (
-  [true* . (BadWeather(true) || UsersDetected(p, true))]
-    mu X(b: Bool = false). (
-      [!(ShowLight(p, Green) || ShowLight(t, Green))] X(b) &&
-      [ShowLight(p, Green)] (val(b == false) && X(true)) &&
-      [ShowLight(t, Green)] X(false)
-    )
-)
+forall t: Nat, p: Nat.
+  val(t < TRAFFIC_LIGHT_COUNT && p < PEDESTRIAN_COUNT) =>
+  nu X(Priority: Bool = false, BadWeather: Bool = false,
+       EVPresent: Bool = false, UserPresent: Bool = false). (
+    [Weather(Raining) || Weather(Snowing)]X(true, true, EVPresent, UserPresent) &&
+    [Weather(Dry)]X(Priority, false, EVPresent, UserPresent) &&
+    [UsersDetected(p, true)]    X(Priority, BadWeather, EVPresent, true) &&
+    [UsersDetected(p, false)]   X(Priority, BadWeather, EVPresent, false) &&
+    [EVDetected(t, true)]       X(Priority, BadWeather, true, UserPresent) &&
+    [EVDetected(t, false)]      X(Priority, BadWeather, false, UserPresent) &&
+    (val(BadWeather) => (
+      (val(Priority) => (
+        [ShowLight(p, Green)]   X(false, BadWeather, EVPresent, UserPresent) &&
+        (val(!EVPresent && UserPresent) => [ShowLight(t, Green)]false) &&
+        (val(!(!EVPresent && UserPresent)) => [ShowLight(t, Green)]
+                                X(Priority, BadWeather, EVPresent, UserPresent))
+      )) &&
+      (val(!Priority) => (
+        [ShowLight(t, Green)]   X(true, BadWeather, EVPresent, UserPresent) &&
+        [ShowLight(p, Green)]   X(Priority, BadWeather, EVPresent, UserPresent)
+      ))
+    )) &&
+    (val(!BadWeather) => [ShowLight(t, Green) || ShowLight(p, Green)]
+      X(Priority, BadWeather, EVPresent, UserPresent)) &&
+    [!(Weather(Raining) || Weather(Snowing) || Weather(Dry) ||
+       UsersDetected(p, false) || UsersDetected(p, true) ||
+       EVDetected(t, true) || EVDetected(t, false) ||
+       ShowLight(t, Green) || ShowLight(p, Green))]
+      X(Priority, BadWeather, EVPresent, UserPresent)
+  )

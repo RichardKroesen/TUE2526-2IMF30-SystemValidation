@@ -36,8 +36,10 @@ act
 % Constants
 map
  	TRAFFIC_LIGHT_COUNT: Nat;
+ 	PEDESTRIAN_COUNT: Nat;
 eqn
 	TRAFFIC_LIGHT_COUNT = 4;
+	PEDESTRIAN_COUNT	= 2;
 
 % Data Types Definitions: 
 sort 	
@@ -65,7 +67,7 @@ eqn
 
 	% Mappings
 	setTrafficLightState(ts, t, c) = setTrafficLightState'(ts, 0, t, c);
-	defaultLights = [Red, Red, Red, Red, Red, Red, Red, Red];
+	defaultLights = [Red, Red, Red, Red];
 
 % Process: 
 proc 
