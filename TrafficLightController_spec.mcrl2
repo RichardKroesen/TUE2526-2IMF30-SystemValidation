@@ -17,7 +17,7 @@ act
 	RecvEVPresent: Nat # Bool;
 	EVPresent: Nat # Bool;
 
-% Actions Definitions: External 
+% Actions Definitions: External
 act 
 	ShowLight: Nat # LightColorState;
 	LightTimeout: Nat # LightColorState;
@@ -34,35 +34,12 @@ eqn
 	TRAFFIC_LIGHT_COUNT = 4;
 	PED_SET = {0, 1};
 
-% Data Types Definitions: 
+% Data Types Definitions:
 sort 	
 	LightColorState = struct Green | Orange | Red;
 	WeatherCondition = struct Dry | Snowing | Raining;
 
-% Traffic lights
-sort
-	TrafficLightStates = List(LightColorState);
-map
-	setTrafficLightState': TrafficLightStates # Nat # Nat # LightColorState -> TrafficLightStates;
-
-	% Mappings
-	setTrafficLightState: TrafficLightStates # Nat # LightColorState -> TrafficLightStates;
-	defaultLights: TrafficLightStates;
-var
-	ts: TrafficLightStates;
-	i: Nat;
-	t: Nat;
-	c: LightColorState;
-eqn
-	setTrafficLightState'([], i, t, c) = [];
-	i == t -> setTrafficLightState'(ts, i, t, c) = c |> setTrafficLightState'(tail(ts), i + 1, t, c);
-	i != t -> setTrafficLightState'(ts, i, t, c) = head(ts) |> setTrafficLightState'(tail(ts), i + 1, t, c);
-
-	% Mappings
-	setTrafficLightState(ts, t, c) = setTrafficLightState'(ts, 0, t, c);
-	defaultLights = [Red, Red, Red, Red];
-
-% Process: 
+% Process:
 proc 
 	ShowGreenLightEV(t: Nat) =
 		ShowLight(t, Green) .
