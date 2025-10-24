@@ -29,3 +29,12 @@ forall t: Nat, t': Nat.
        EVDetected(t', false) || EVDetected(t', true))]
       X(ev_t, ev_t_prime)
   )
+
+%forall t: Nat.
+%  forall t': Nat. 
+%    val(t != t' && 
+%        t  < TRAFFIC_LIGHT_COUNT && 
+%        t' < TRAFFIC_LIGHT_COUNT) => 
+%    [true* . EVApproaching(t) .
+%     (!EVPassed(t))* . (!EVPresent(t'))* . ShowLight(t', Green)]
+%    false
