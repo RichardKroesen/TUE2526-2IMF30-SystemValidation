@@ -32,7 +32,7 @@ map
 	PED_SET: Set(Nat);
 eqn
 	TRAFFIC_LIGHT_COUNT = 4;
-	PED_SET = {0,1};
+	PED_SET = {0, 1};
 
 % Data Types Definitions: 
 sort 	
@@ -126,11 +126,13 @@ proc
 		))
 	;
 	EVChecking =
+		% We don't check pedestrian lights
+		% In our model, no emergency vehicle may enter pedestrian roads
 		EVChecking'(2) .
 		EVChecking'(3) 
 	;
-	
-	CycleRegular'(t: Nat) =
+
+	Check(t: Nat) =
 		EVChecking .
 		((
 			UsersDetected(t, true) .
@@ -138,24 +140,15 @@ proc
 		) + (
 			UsersDetected(t, false)
 		))
-	;
-	CycleRegular =
-		CycleRegular'(2) .
-		CycleRegular'(3) 
 	;
 
-	CyclePedestrians'(t: Nat) =
-		EVChecking .
-		((
-			UsersDetected(t, true) .
-			ShowGreenLight(t)
-		) + (
-			UsersDetected(t, false)
-		))
+	CycleRegular =
+		Check(2) .
+		Check(3)
 	;
 	CyclePedestrians =
-		CyclePedestrians'(0) .
-		CyclePedestrians'(1)
+		Check(0) .
+		Check(1)
 	;
 
 init
