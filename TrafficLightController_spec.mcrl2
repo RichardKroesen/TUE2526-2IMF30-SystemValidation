@@ -39,7 +39,7 @@ map
  	PEDESTRIAN_COUNT: Nat;
 	PED_SET: Set(Nat);
 eqn
-	TRAFFIC_LIGHT_COUNT = 6;
+	TRAFFIC_LIGHT_COUNT = 4;
 	% PEDESTRIAN_COUNT	= 2;
 	PED_SET = {0,1};
 
@@ -69,7 +69,7 @@ eqn
 
 	% Mappings
 	setTrafficLightState(ts, t, c) = setTrafficLightState'(ts, 0, t, c);
-	defaultLights = [Red, Red, Red, Red, Red, Red];
+	defaultLights = [Red, Red, Red, Red];
 
 % Process: 
 proc 
@@ -137,16 +137,15 @@ proc
 			SendRequestGreen(t) .
 			RecvCycleDone
 		) + (
-			RecvEVPresent(t, false)
+			RecvEVPresent(t, false) .
+			RecvCycleDone
 		))
 	;
 	EVChecking =
-		% EVChecking'(0) .
-		% EVChecking'(1) .
+		EVChecking'(0) .
+		EVChecking'(1) .
 		EVChecking'(2) .
-		EVChecking'(3) .
-		EVChecking'(4) .
-		EVChecking'(5)  
+		EVChecking'(3) 
 		% EVChecking'(6)
 		% EVChecking'(0) .
 		% EVChecking'(1) .
@@ -170,9 +169,7 @@ proc
 	;
 	CycleRegular =
 		CycleRegular'(2) .
-		CycleRegular'(3) .
-		CycleRegular'(4) .
-		CycleRegular'(5) 
+		CycleRegular'(3) 
 		% CycleRegular'(6) 
 		% CycleRegular'(7)
 	;
@@ -200,11 +197,11 @@ init
 hide(
 	{
 		% WeatherPoll,
-		BadWeather,
-		EVPoll,
-		EVPresent,
-		RequestGreen,
-		CycleDone
+		BadWeather
+		% EVPoll
+		% EVPresent
+		% RequestGreen,
+		% CycleDone
 	},
 allow(
 	{
@@ -227,10 +224,10 @@ comm(	{
 		SendWeatherPoll|RecvWeatherPoll -> WeatherPoll,
 		SendBadWeather|RecvBadWeather -> BadWeather,
 
+SendRequestGreen|RecvRequestGreen -> RequestGreen,
 		SendEVPoll|RecvEVPoll -> EVPoll,
 		SendEVPresent|RecvEVPresent -> EVPresent,
 
-		SendRequestGreen|RecvRequestGreen -> RequestGreen,
 		SendCycleDone|RecvCycleDone -> CycleDone
 	}, 
  EVComponent(defaultLights) || UserDetectionComponent || WeatherComponent(Dry) || LightComponent(defaultLights)
