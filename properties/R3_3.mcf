@@ -1,5 +1,5 @@
 
-% ------- REQUIREMNETS BASED ON DOC: NO version... ------ % 
+% ------- REQUIREMNETS BASED ON DOC: v1.6 ------ % 
 
 % ======== Natural Language Specification ========
 % When for any traffic light t element of T and 
@@ -11,9 +11,24 @@
 
 % ============ NL Sub-Specification ==============
 % No showlight(t’, green) will occur for any t’ 
-% without EV present, until EVPassed(t)
-% occurred:
+% without EV present, while there is an
+% EV at any t ∈ intersecting(t′))
 % ================================================
+
+forall t: Nat, t': Nat. 
+  val(t != t' && 
+      t  < TRAFFIC_LIGHT_COUNT && 
+      t' < TRAFFIC_LIGHT_COUNT) => 
+  nu X(ev_t: Bool = false, ev_t_prime: Bool = false). (
+    [EVDetected(t, true)]   X(true, ev_t_prime) &&
+    [EVDetected(t', true)]  X(ev_t, true) &&
+    [EVDetected(t, false)]  X(false, ev_t_prime) &&
+    [EVDetected(t', false)] X(ev_t, false) &&
+    (val(ev_t) => [ShowLight(t', Green)]val(ev_t_prime)) &&
+    [!(EVDetected(t, false) || EVDetected(t, true) || 
+       EVDetected(t', false) || EVDetected(t', true))]
+      X(ev_t, ev_t_prime)
+  )
 
 %forall t: Nat.
 %  forall t': Nat. 

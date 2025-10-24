@@ -1,11 +1,11 @@
 
-% ------- REQUIREMNETS BASED ON DOC: v1.4 ------ % 
+% ------- REQUIREMNETS BASED ON DOC: v1.6 ------ % 
 
 % ======== Natural Language Specification ========
 % When for any traffic light t element of T, 
-% ShowLight(t, green) occurs, for all t′ element of 
-% intersecting(t), ShowLight(t′, green) may not occur, 
-% until ShowLight(t, red) occurs.
+% ShowLight(t, green) occurs, for all t′ element  
+% of intersecting(t), ShowLight(t′, green) may not 
+% occur, until ShowLight(t, red) occurs.
 % ================================================
 
 forall t: Nat.
@@ -13,7 +13,7 @@ forall t: Nat.
 		(val(t != t' && 
 		t < TRAFFIC_LIGHT_COUNT && 
 		t' < TRAFFIC_LIGHT_COUNT)) =>
-		 [true*.ShowLight(t, Green). 
+		 [true* . ShowLight(t, Green). 
 		 (!ShowLight(t, Red))*. 
 		 ShowLight(t', Green)]
 		 false

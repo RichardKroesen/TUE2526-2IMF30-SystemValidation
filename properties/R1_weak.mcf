@@ -7,13 +7,9 @@
 % ShowLight(t, green) must occur.
 % ================================================
 
-% ================= Strong Variant ===============
-
-% NOTICE: This property is adapted version of R1, 
-% since mCRL2 mentiones otherwise
-% something about monotonicity  
+% ================= Weak Variant =================
 
 forall t: Nat. (val(t < TRAFFIC_LIGHT_COUNT)) =>
-  [true* . UsersDetected(t, true)]
-   mu X. (<ShowLight(t, Green)> true || 
-    (([!ShowLight(t, Green)] X) && <true> true))
+  ([true* . UsersDetected(t, true) . 
+   !(ShowLight(t, Green))*]
+  <true* . ShowLight(t, Green)>true)

@@ -1,5 +1,5 @@
 
-% ------- REQUIREMNETS BASED ON DOC: NO version... ------ % 
+% ------- REQUIREMNETS BASED ON DOC: v1.6 ------ % 
 
 % ======== Natural Language Specification ========
 % When for any traffic light t element of T and 
@@ -10,15 +10,14 @@
 % ================================================
 
 % ============ NL Sub-Specification ==============
-% After EmergencyVApproaching(t) and 
-% ShowLight(t,green), ShowLight(t,red) may
-% not happen before EmergencyVehiclePassed(t) 
-% occurred:
+% After EVDetected(t, true) and ShowLight(t,green) 
+% ShowLight(t,red) may not happen before 
+% EVDetected(t,false) occurred:
 % ================================================
 
 forall t: Nat. (val(t < TRAFFIC_LIGHT_COUNT)) =>
-    [true* . EVApproaching(t) . 
-     (!(ShowLight(t, Green) || EVPassed(t)))* . 
+    [true* . EVDetected(t, true) . 
+     (!(ShowLight(t, Green) || EVDetected(t, false)))* . 
      ShowLight(t, Green) . 
-     (!EVPassed(t))* . ShowLight(t, Red)
+     (!EVDetected(t, false))* . ShowLight(t, Red)
     ] false
