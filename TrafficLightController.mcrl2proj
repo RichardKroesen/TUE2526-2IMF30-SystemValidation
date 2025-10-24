@@ -16,6 +16,7 @@
   <property>R7</property>
   <property>R8</property>
   <property>R9</property>
+  <property>Exists Showlight</property>
  </properties>
  <jittyc>false</jittyc>
  <linearisation_method>stack</linearisation_method>
