@@ -79,19 +79,20 @@ proc
 		ShowLight(t, Red)
 	;
 
-	EVComponent(lights: TrafficLightStates) =
-		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT && t in !(PED_SET)) -> ((
-			EVDetected(t, true) .
-			EVComponent(setTrafficLightState(lights, t, Green))
-		) + (
-			EVDetected(t, false) .
-			EVComponent(setTrafficLightState(lights, t, Red))
-		) + (
+	EVComponent =
+		sum t: Nat . (t < TRAFFIC_LIGHT_COUNT) -> (
 			RecvEVPoll(t) .
-			SendEVPresent(t, lights . t == Green) .
-			EVComponent(lights)
-		))
+			((
+				EVDetected(t, true) .
+				SendEVPresent(t, true)
+			) + (
+				EVDetected(t, false) .
+				SendEVPresent(t, false)
+			)) .
+			EVComponent
+		)
 	;
+
 	WeatherComponent(current: WeatherCondition) =
 		(sum new: WeatherCondition .
 			Weather(new) .
@@ -191,6 +192,6 @@ comm(	{
 		SendEVPoll|RecvEVPoll -> EVPoll,
 		SendEVPresent|RecvEVPresent -> EVPresent
 	},
-EVComponent(defaultLights) || UserDetectionComponent || WeatherComponent(Dry)
+EVComponent || UserDetectionComponent || WeatherComponent(Dry)
 %)));
 ));
