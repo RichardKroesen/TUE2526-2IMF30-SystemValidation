@@ -5,18 +5,22 @@
 % For any traffic light t element of T, where 
 % UserDetected(t, false) occurred, 
 % ShowLight(t, green) may not take place until 
-% UserDetected(t, true) has occurred.
+% UserDetected(t, true) or EVDetected(t, true) has occurred.
 % ================================================
 
 forall t: Nat. 
-  val(t  < TRAFFIC_LIGHT_COUNT) => 
+  val(t < TRAFFIC_LIGHT_COUNT) => 
   nu X(EVPresent: Bool = false, UserPresent: Bool = false). (
-    [EVDetected(t, true)]   X(true, UserPresent) &&
-    [EVDetected(t, false)]  X(false, UserPresent) &&
-	[UsersDetected(t, true)]   X(EVPresent, true) &&
-    [UsersDetected(t, false)]  X(EVPresent, false) &&
-	[ShowLight(t,Green)]val(EVPresent || UserPresent) &&
-    [!(EVDetected(t, false) || EVDetected(t, true) ||
-	 UsersDetected(t,false) || UsersDetected(t,true)
-) ] X(EVPresent, UserPresent)
+    [EVDetected(t, true)] X(true, UserPresent) &&
+    [EVDetected(t, false)] X(false, UserPresent) &&
+	  [UsersDetected(t, true)] X(EVPresent, true) &&
+    [UsersDetected(t, false)] X(EVPresent, false) &&
+	  [ShowLight(t, Green)] val(EVPresent || UserPresent) &&
+    [
+      !(
+        EVDetected(t, false) || EVDetected(t, true) ||
+	      UsersDetected(t, false) || UsersDetected(t, true)
+      )
+    ] X(EVPresent, UserPresent)
   )
+
