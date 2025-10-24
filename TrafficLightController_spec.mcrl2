@@ -142,8 +142,8 @@ proc
 		))
 	;
 	EVChecking =
-		EVChecking'(0) .
-		EVChecking'(1) .
+		% EVChecking'(0) .
+		% EVChecking'(1) .
 		EVChecking'(2) .
 		EVChecking'(3) 
 		% EVChecking'(6)
