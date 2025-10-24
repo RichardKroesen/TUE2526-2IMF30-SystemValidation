@@ -16,17 +16,18 @@ forall t: Nat.
         t  < TRAFFIC_LIGHT_COUNT && 
         t' < TRAFFIC_LIGHT_COUNT) => 
 
-  nu X(n : Nat = 0, PPresent : Bool = false, LightRed : Bool = false).
-    [ShowLight(t, Red)]       X(n, PPresent, true) &&
-    [ShowLight(t, Green)]     X(0, PPresent, false) &&
-    [UsersDetected(t, true)]  X(n, true, LightRed) &&
-    [UsersDetected(t, false)] X(n, false, LightRed) &&
-    [EVDetected(t', true)]    X(0, PPresent, LightRed) &&
-    (val(LightRed && PPresent) => [ShowLight(t', Green)] 
-                              X(n + 1, PPresent, LightRed)) &&
-    (val(!(LightRed && PPresent)) => [ShowLight(t', Green)] 
-                              X(n, PPresent, LightRed)) &&
+  nu X(n : Nat = 0, UserPresent : Bool = false, LightRed : Bool = true, EVPresent : Bool = false).
+    [ShowLight(t, Red)]       X(n, UserPresent, true, EVPresent) &&
+    [ShowLight(t, Green)]     X(0, UserPresent, false, EVPresent) &&
+    [UsersDetected(t, true)]  X(n, true, LightRed, EVPresent) &&
+    [UsersDetected(t, false)] X(n, false, LightRed, EVPresent) &&
+    [EVDetected(t', false)]    X(n, UserPresent, LightRed, false) &&
+    [EVDetected(t', true)]    X(0, UserPresent, LightRed, true) &&
+    (val(LightRed && UserPresent && !EVPresent) => [ShowLight(t', Green)] 
+                              X(n + 1, UserPresent, LightRed, EVPresent)) &&
+    (val(!(LightRed && UserPresent && !EVPresent)) => [ShowLight(t', Green)] 
+                              X(n, UserPresent, LightRed, EVPresent)) &&
     val(n < 3) &&
     [!(ShowLight(t, Red) || ShowLight(t, Green) || UsersDetected(t, true) ||
-       UsersDetected(t, false) || ShowLight(t', Green) || EVDetected(t', true))]
-      X(n, PPresent, LightRed)
+       UsersDetected(t, false) || ShowLight(t', Green) || EVDetected(t', false)|| EVDetected(t', true))]
+      X(n, UserPresent, LightRed, EVPresent)
