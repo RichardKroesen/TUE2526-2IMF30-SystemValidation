@@ -79,21 +79,23 @@ proc
 		WeatherComponent
 	;
 	UserDetectionComponent =
-		SendWeatherPoll .
-		((
-			RecvBadWeather(true) .
-			CyclePedestrians .
-			CycleRegular
-		) + (
-			RecvBadWeather(false) .
-			CycleRegular .
-			CyclePedestrians
-		)) .
+		%SendWeatherPoll .
+		%((
+		%	RecvBadWeather(true) .
+		%	CyclePedestrians .
+		%	CycleRegular
+		%) + (
+		%	RecvBadWeather(false) .
+		%	CycleRegular .
+		%	CyclePedestrians
+		%)) .
+		CycleRegular .
 		UserDetectionComponent
 	;
 
 	
-	EVChecking'(t: Nat) =
+	% These procedures check an individual traffic light
+	CheckEV(t: Nat) =
 		SendEVPoll(t) .
 		((
 			RecvEVPresent(t, true) .
@@ -102,15 +104,18 @@ proc
 			RecvEVPresent(t, false)
 		))
 	;
-	EVChecking =
-		% We don't check pedestrian lights
-		% In our model, no emergency vehicle may enter pedestrian roads
-		EVChecking'(2) .
-		EVChecking'(3) 
+	CheckRegular(t: Nat) =
+		CycleEV .
+		PedestrianChecking .
+		((
+			UsersDetected(t, true) .
+			ShowGreenLight(t)
+		) + (
+			UsersDetected(t, false)
+		))
 	;
-
-	Check(t: Nat) =
-		EVChecking .
+	CheckPedestrian(t: Nat) =
+		CycleEV .
 		((
 			UsersDetected(t, true) .
 			ShowGreenLight(t)
@@ -119,15 +124,32 @@ proc
 		))
 	;
 
-	CycleRegular =
-		Check(2) .
-		Check(3)
-	;
-	CyclePedestrians =
-		Check(0) .
-		Check(1)
+	% These procedures ensure priorities are properly implemented
+	PedestrianChecking = 
+		SendWeatherPoll .
+		((
+			RecvBadWeather(true) .
+			CyclePedestrians
+		) + (
+			RecvBadWeather(false)
+		))
 	;
 
+
+	% These procedures cycle through their set of traffic lights
+	CycleRegular =
+		CheckRegular(2) .
+		CheckRegular(3) .
+		CyclePedestrians
+	;
+	CyclePedestrians =
+		CheckPedestrian(0) .
+		CheckPedestrian(1)
+	;
+	CycleEV =
+		CheckEV(2) .
+		CheckEV(3) 
+	;
 init
 %hide(
 %	{
