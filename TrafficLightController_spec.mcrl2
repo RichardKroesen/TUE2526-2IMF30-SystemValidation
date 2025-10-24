@@ -142,8 +142,6 @@ proc
 		))
 	;
 	EVChecking =
-		EVChecking'(0) .
-		EVChecking'(1) .
 		EVChecking'(2) .
 		EVChecking'(3) 
 		% EVChecking'(6)
@@ -194,15 +192,15 @@ proc
 	;
 
 init
-hide(
-	{
-		% WeatherPoll,
-		BadWeather
-		% EVPoll
-		% EVPresent
-		% RequestGreen,
-		% CycleDone
-	},
+%hide(
+%	{
+%		WeatherPoll,
+%		BadWeather
+%		EVPoll
+%		EVPresent
+%		RequestGreen,
+%		CycleDone
+%	},
 allow(
 	{
 		% External actions
@@ -230,5 +228,6 @@ SendRequestGreen|RecvRequestGreen -> RequestGreen,
 
 		SendCycleDone|RecvCycleDone -> CycleDone
 	}, 
- EVComponent(defaultLights) || UserDetectionComponent || WeatherComponent(Dry) || LightComponent(defaultLights)
-)));
+EVComponent(defaultLights) || UserDetectionComponent || WeatherComponent(Dry) || LightComponent(defaultLights)
+%)));
+));
