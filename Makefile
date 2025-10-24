@@ -34,10 +34,9 @@ lps: $(OUT)/$(BASE_INPUT).opt.lps
 build-properties: $(patsubst %.mcf,$(OUT)/%.pbes,$(shell ls $(PROPERTIES)))
 
 verify-properties: $(patsubst %.mcf,$(OUT)/%.status,$(shell ls $(PROPERTIES)))
+	echo ""; \
 	for FILE in $^; do \
-		echo ""; \
 		echo "PROPERTY $$(basename $$FILE .status) EVALUATES TO -> $$(cat $$FILE)"; \
-		echo ""; \
 	done
 
 verify-%: $(OUT)/%.status
