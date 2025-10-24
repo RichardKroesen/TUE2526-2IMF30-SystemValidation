@@ -9,8 +9,14 @@
 % ================================================
 
 forall t: Nat. 
-  val(t < TRAFFIC_LIGHT_COUNT) =>
-  ([true* . UsersDetected(t, false) . 
-    (!(UsersDetected(t, true) || EVDetected(t, true)))* . 
-    ShowLight(t, Green)]
-  false)
+  val(t  < TRAFFIC_LIGHT_COUNT) => 
+  nu X(EVPresent: Bool = false, UserPresent: Bool = false). (
+    [EVDetected(t, true)]   X(true, UserPresent) &&
+    [EVDetected(t, false)]  X(false, UserPresent) &&
+	[UsersDetected(t, true)]   X(EVPresent, true) &&
+    [UsersDetected(t, false)]  X(EVPresent, false) &&
+	[ShowLight(t,Green)]val(EVPresent || UserPresent) &&
+    [!(EVDetected(t, false) || EVDetected(t, true) ||
+	 UsersDetected(t,false) || UsersDetected(t,true)
+) ] X(EVPresent, UserPresent)
+  )
