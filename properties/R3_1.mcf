@@ -15,6 +15,6 @@
 % ================================================
 
 forall t: Nat. (val(t < TRAFFIC_LIGHT_COUNT) && val(t in !(PED_SET))) =>
-    [true* . EVDetected(t, true) .
-    !(ShowLight(t, Green) || EVDetected(t, false))*]
+    [true* . EVPresent(t, true) .
+    !(ShowLight(t, Green) || EVPresent(t, false))*]
     <true* . ShowLight(t,Green)> true
