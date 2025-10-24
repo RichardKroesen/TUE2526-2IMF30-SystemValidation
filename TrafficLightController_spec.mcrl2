@@ -144,15 +144,6 @@ proc
 	EVChecking =
 		EVChecking'(2) .
 		EVChecking'(3) 
-		% EVChecking'(6)
-		% EVChecking'(0) .
-		% EVChecking'(1) .
-		% EVChecking'(2) .
-		% EVChecking'(3) .
-		% EVChecking'(4) .
-		% EVChecking'(5) .
-		% EVChecking'(6) .
-		% EVChecking'(7)
 	;
 	
 	CycleRegular'(t: Nat) =
@@ -168,8 +159,6 @@ proc
 	CycleRegular =
 		CycleRegular'(2) .
 		CycleRegular'(3) 
-		% CycleRegular'(6) 
-		% CycleRegular'(7)
 	;
 
 	CyclePedestrians'(t: Nat) =
@@ -185,19 +174,15 @@ proc
 	CyclePedestrians =
 		CyclePedestrians'(0) .
 		CyclePedestrians'(1)
-		% CyclePedestrians'(0) .
-		% CyclePedestrians'(1) .
-		% CyclePedestrians'(2) .
-		% CyclePedestrians'(3)
 	;
 
 init
 %hide(
 %	{
 %		WeatherPoll,
-%		BadWeather
-%		EVPoll
-%		EVPresent
+%		BadWeather,
+%		EVPoll,
+%		EVPresent,
 %		RequestGreen,
 %		CycleDone
 %	},
