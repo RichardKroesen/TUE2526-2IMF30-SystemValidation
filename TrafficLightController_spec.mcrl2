@@ -17,14 +17,6 @@ act
 	RecvEVPresent: Nat # Bool;
 	EVPresent: Nat # Bool;
 
-	% Light timeouts
-	SendRequestGreen: Nat;
-	RecvRequestGreen: Nat;
-	RequestGreen: Nat;
-	SendCycleDone;
-	RecvCycleDone;
-	CycleDone;
-
 % Actions Definitions: External 
 act 
 	ShowLight: Nat # LightColorState;
@@ -40,7 +32,6 @@ map
 	PED_SET: Set(Nat);
 eqn
 	TRAFFIC_LIGHT_COUNT = 4;
-	% PEDESTRIAN_COUNT	= 2;
 	PED_SET = {0,1};
 
 % Data Types Definitions: 
@@ -73,25 +64,21 @@ eqn
 
 % Process: 
 proc 
-	LightComponent(lights: TrafficLightStates) =
-		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) -> (
-			(lights . t == Red) -> 
-				RecvRequestGreen(t) .
-				ShowLight(t, Green) .
-				LightComponent(setTrafficLightState(defaultLights, t, Green))
-			+
-			(lights . t == Green) ->
-				LightTimeout(t, Green) .
-				ShowLight(t, Orange) .
-				LightComponent(setTrafficLightState(lights, t, Orange))
-			+
-			(lights . t == Orange) ->
-				LightTimeout(t, Orange) .
-				ShowLight(t, Red) .
-				SendCycleDone .
-				LightComponent(setTrafficLightState(lights, t, Red))
-		)
+	ShowGreenLightEV(t: Nat) =
+		ShowLight(t, Green) .
+		(LightTimeout(t, Green) + EVDetected(t, false)) .
+		ShowLight(t, Orange) .
+		LightTimeout(t, Orange) .
+		ShowLight(t, Red)
 	;
+	ShowGreenLight(t: Nat) =
+		ShowLight(t, Green) .
+		(LightTimeout(t, Green) + UsersDetected(t, false)) .
+		ShowLight(t, Orange) .
+		LightTimeout(t, Orange) .
+		ShowLight(t, Red)
+	;
+
 	EVComponent(lights: TrafficLightStates) =
 		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT && t in !(PED_SET)) -> ((
 			EVDetected(t, true) .
@@ -134,8 +121,7 @@ proc
 		SendEVPoll(t) .
 		((
 			RecvEVPresent(t, true) .
-			SendRequestGreen(t) .
-			RecvCycleDone
+			ShowGreenLightEV(t)
 		) + (
 			RecvEVPresent(t, false)
 		))
@@ -149,8 +135,7 @@ proc
 		EVChecking .
 		((
 			UsersDetected(t, true) .
-			SendRequestGreen(t) .
-			RecvCycleDone
+			ShowGreenLight(t)
 		) + (
 			UsersDetected(t, false)
 		))
@@ -164,8 +149,7 @@ proc
 		EVChecking .
 		((
 			UsersDetected(t, true) .
-			SendRequestGreen(t) .
-			RecvCycleDone
+			ShowGreenLight(t)
 		) + (
 			UsersDetected(t, false)
 		))
@@ -198,20 +182,15 @@ allow(
 		WeatherPoll,
 		BadWeather,
 		EVPoll,
-		EVPresent,
-		RequestGreen,
-		CycleDone
+		EVPresent
 	},
 comm(	{
 		SendWeatherPoll|RecvWeatherPoll -> WeatherPoll,
 		SendBadWeather|RecvBadWeather -> BadWeather,
 
-SendRequestGreen|RecvRequestGreen -> RequestGreen,
 		SendEVPoll|RecvEVPoll -> EVPoll,
-		SendEVPresent|RecvEVPresent -> EVPresent,
-
-		SendCycleDone|RecvCycleDone -> CycleDone
-	}, 
-EVComponent(defaultLights) || UserDetectionComponent || WeatherComponent(Dry) || LightComponent(defaultLights)
+		SendEVPresent|RecvEVPresent -> EVPresent
+	},
+EVComponent(defaultLights) || UserDetectionComponent || WeatherComponent(Dry)
 %)));
 ));
