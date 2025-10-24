@@ -14,7 +14,7 @@
 % ================================================
 
 forall t: Nat, p: Nat.
-  val(t < TRAFFIC_LIGHT_COUNT && p < PEDESTRIAN_COUNT) =>
+  val(t < (TRAFFIC_LIGHT_COUNT) && p in PED_SET && !(t in PED_SET)) =>
   nu X(Priority: Bool = false, BadWeather: Bool = false,
        EVPresent: Bool = false, UserPresent: Bool = false). (
     [Weather(Raining) || Weather(Snowing)]X(true, true, EVPresent, UserPresent) &&
