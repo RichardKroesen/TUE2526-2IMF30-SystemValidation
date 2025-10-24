@@ -105,13 +105,13 @@ proc
 	UserDetectionComponent =
 		SendWeatherPoll .
 		((
-			CycleRegular .
+			RecvBadWeather(true) .
 			CyclePedestrians .
-			RecvBadWeather(true) 
+			CycleRegular
 		) + (
+			RecvBadWeather(false) .
 			CycleRegular .
-			CyclePedestrians .
-			RecvBadWeather(false)
+			CyclePedestrians
 		)) .
 		UserDetectionComponent
 	;
