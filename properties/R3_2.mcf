@@ -22,19 +22,10 @@ forall t: Nat, t': Nat.
   nu X(ev_t: Bool = false, ev_t_prime: Bool = false). (
     [EVDetected(t, true)]   X(true, ev_t_prime) &&
     [EVDetected(t', true)]  X(ev_t, true) &&
-    [EVDetected(t, false)]  X(false, ev_t_prime) &&
-    [EVDetected(t', false)] X(ev_t, false) &&
+    [ShowLight(t, Green)]  X(false, ev_t_prime) &&
+    [ShowLight(t', Green)] X(ev_t, false) &&
     (val(ev_t) => [ShowLight(t', Green)]val(ev_t_prime)) &&
-    [!(EVDetected(t, false) || EVDetected(t, true) || 
-       EVDetected(t', false) || EVDetected(t', true))]
+    [!(ShowLight(t, Green) || EVDetected(t, true) || 
+       ShowLight(t', Green) || EVDetected(t', true))]
       X(ev_t, ev_t_prime)
   )
-
-%forall t: Nat.
-%  forall t': Nat. 
-%    val(t != t' && 
-%        t  < TRAFFIC_LIGHT_COUNT && 
-%        t' < TRAFFIC_LIGHT_COUNT) => 
-%    [true* . EVApproaching(t) .
-%     (!EVPassed(t))* . (!EVPresent(t'))* . ShowLight(t', Green)]
-%    false
