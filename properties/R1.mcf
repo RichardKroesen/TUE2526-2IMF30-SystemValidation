@@ -1,5 +1,5 @@
 
-% ------- REQUIREMNETS BASED ON DOC: v1.4 ------ % 
+% ------- REQUIREMNETS BASED ON DOC: v1.6 ------ % 
 
 % ======== Natural Language Specification ========
 % After for any traffic light t element of T, 
@@ -7,8 +7,13 @@
 % ShowLight(t, green) must occur.
 % ================================================
 
-% NOTICE: This property is adapted version of R1, since mCRL2 mentiones otherwise
+% ================= Strong Variant ===============
+
+% NOTICE: This property is adapted version of R1, 
+% since mCRL2 mentiones otherwise
 % something about monotonicity  
+
 forall t: Nat. (val(t < TRAFFIC_LIGHT_COUNT)) =>
   [true* . UsersDetected(t, true)]
-   mu X. (<ShowLight(t, Green)> true || (([!ShowLight(t, Green)] X) && <true> true))
+   mu X. (<ShowLight(t, Green)> true || 
+    (([!ShowLight(t, Green)] X) && <true> true))

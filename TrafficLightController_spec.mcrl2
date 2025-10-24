@@ -1,101 +1,234 @@
 
-% Data Types Definitions: 
-sort 	
-	LightColorState = struct Green | Orange | Red;
-	WeatherCondition = struct Dry | Snowing | Raining;
+% Actions Definitions: Internal
+act
+	% Weather polling
+	SendWeatherPoll;
+	RecvWeatherPoll;
+	WeatherPoll;
+	SendBadWeather: Bool;
+	RecvBadWeather: Bool;
+	BadWeather: Bool;
 
-sort
-	TrafficRequestStates = List(Bool);
-map
-	requestGreenOnLightP: TrafficRequestStates # Nat # Nat # Bool -> TrafficRequestStates;
+	% EV polling
+	SendEVPoll: Nat;
+	RecvEVPoll: Nat;
+	EVPoll: Nat;
+	SendEVPresent: Nat # Bool;
+	RecvEVPresent: Nat # Bool;
+	EVPresent: Nat # Bool;
 
-	% Mappings
-	requestGreenOnLight: TrafficRequestStates # Nat -> TrafficRequestStates;
-	clearRequestOnLight: TrafficRequestStates # Nat -> TrafficRequestStates;
-var
-	rs: TrafficRequestStates;
-	i: Nat;
-	t: Nat;
-	s: Bool;
-eqn
-	requestGreenOnLightP([], i, t, s) = [];
-	i == t -> requestGreenOnLightP(rs, i, t, s) = s |> requestGreenOnLightP(tail(rs), i + 1, t, s);
-	i != t -> requestGreenOnLightP(rs, i, t, s) = head(rs) |> requestGreenOnLightP(tail(rs), i + 1, t, s);
-
-	% Mappings
-	requestGreenOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, true);
-	clearRequestOnLight(rs, t) = requestGreenOnLightP(rs, 0, t, false);
-
-% Constants
-map
- 	TRAFFIC_LIGHT_COUNT: Nat;
-eqn
-	TRAFFIC_LIGHT_COUNT = 3;
+	% Light timeouts
+	SendRequestGreen: Nat;
+	RecvRequestGreen: Nat;
+	RequestGreen: Nat;
+	SendCycleDone;
+	RecvCycleDone;
+	CycleDone;
 
 % Actions Definitions: External 
 act 
 	ShowLight: Nat # LightColorState;
 	LightTimeout: Nat # LightColorState;
-	UsersDetected: Nat # Bool;
-	EVApproaching: Nat;
-	EVPassed: Nat;
-	Weather: WeatherCondition;
-
-% Actions Definitions: Internal
-act 
-	EVPoll: Nat;
-	WeatherPoll;
-	CycleDone: Nat;
-	BadWeather: Bool;
-	RequestGreen: Nat;
 	EVDetected: Nat # Bool;
+	Weather: WeatherCondition;
+	UsersDetected: Nat # Bool;
+
+% Constants
+map
+ 	TRAFFIC_LIGHT_COUNT: Nat;
+ 	PEDESTRIAN_COUNT: Nat;
+	PED_SET: Set(Nat);
+eqn
+	TRAFFIC_LIGHT_COUNT = 4;
+	% PEDESTRIAN_COUNT	= 2;
+	PED_SET = {0,1};
+
+% Data Types Definitions: 
+sort 	
+	LightColorState = struct Green | Orange | Red;
+	WeatherCondition = struct Dry | Snowing | Raining;
+
+% Traffic lights
+sort
+	TrafficLightStates = List(LightColorState);
+map
+	setTrafficLightState': TrafficLightStates # Nat # Nat # LightColorState -> TrafficLightStates;
+
+	% Mappings
+	setTrafficLightState: TrafficLightStates # Nat # LightColorState -> TrafficLightStates;
+	defaultLights: TrafficLightStates;
+var
+	ts: TrafficLightStates;
+	i: Nat;
+	t: Nat;
+	c: LightColorState;
+eqn
+	setTrafficLightState'([], i, t, c) = [];
+	i == t -> setTrafficLightState'(ts, i, t, c) = c |> setTrafficLightState'(tail(ts), i + 1, t, c);
+	i != t -> setTrafficLightState'(ts, i, t, c) = head(ts) |> setTrafficLightState'(tail(ts), i + 1, t, c);
+
+	% Mappings
+	setTrafficLightState(ts, t, c) = setTrafficLightState'(ts, 0, t, c);
+	defaultLights = [Red, Red, Red, Red];
 
 % Process: 
 proc 
-	LightComponent(t: Nat, color: LightColorState) =
-		(color == Red) -> 
-			sum any_traffic_light: Nat . (any_traffic_light < TRAFFIC_LIGHT_COUNT) ->
-				RequestGreen(any_traffic_light) .
-				ShowLight(any_traffic_light, Green) .
-				LightComponent(any_traffic_light, Green)
-		+
-		(color == Green) ->
-			LightTimeout(t, Green) .
-			ShowLight(t, Orange) .
-			LightComponent(t, Orange)
-		+
-		(color == Orange) ->
-			LightTimeout(t, Orange) .
-			ShowLight(t, Red) .
-			CycleDone(t) .
-			LightComponent(t, Red)
+	LightComponent(lights: TrafficLightStates) =
+		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) -> (
+			(lights . t == Red) -> 
+				RecvRequestGreen(t) .
+				ShowLight(t, Green) .
+				LightComponent(setTrafficLightState(defaultLights, t, Green))
+			+
+			(lights . t == Green) ->
+				LightTimeout(t, Green) .
+				ShowLight(t, Orange) .
+				LightComponent(setTrafficLightState(lights, t, Orange))
+			+
+			(lights . t == Orange) ->
+				LightTimeout(t, Orange) .
+				ShowLight(t, Red) .
+				SendCycleDone .
+				LightComponent(setTrafficLightState(lights, t, Red))
+		)
 	;
-	EVComponent(lanes: TrafficRequestStates) =
-		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) ->
-			EVApproaching(t) .
-			EVComponent(requestGreenOnLight(lanes, t))
-		+
-		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) ->
-			EVPassed(t) .
-			EVComponent(clearRequestOnLight(lanes, t))
-		+
-		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT) ->
-			EVPoll(t) .
-			EVDetected(t, lanes . t) .
-			EVComponent(lanes)
+	EVComponent(lights: TrafficLightStates) =
+		sum t: Nat. (t < TRAFFIC_LIGHT_COUNT && t in !(PED_SET)) -> ((
+			EVDetected(t, true) .
+			EVComponent(setTrafficLightState(lights, t, Green))
+		) + (
+			EVDetected(t, false) .
+			EVComponent(setTrafficLightState(lights, t, Red))
+		) + (
+			RecvEVPoll(t) .
+			SendEVPresent(t, lights . t == Green) .
+			EVComponent(lights)
+		))
 	;
 	WeatherComponent(current: WeatherCondition) =
-		sum new: WeatherCondition .
+		(sum new: WeatherCondition .
 			Weather(new) .
 			WeatherComponent(new)
-		+
-			WeatherPoll .
-			(
-				(current == Dry) -> BadWeather(false) +
-				(current != Dry) -> BadWeather(true)
-			) .
+		) + (
+			RecvWeatherPoll .
+			SendBadWeather(current != Dry) .
 			WeatherComponent(current)
+		)
+	;
+	UserDetectionComponent =
+		SendWeatherPoll .
+		((
+			CycleRegular .
+			CyclePedestrians .
+			RecvBadWeather(true) 
+		) + (
+			CycleRegular .
+			CyclePedestrians .
+			RecvBadWeather(false)
+		)) .
+		UserDetectionComponent
 	;
 
+	
+	EVChecking'(t: Nat) =
+		SendEVPoll(t) .
+		((
+			RecvEVPresent(t, true) .
+			SendRequestGreen(t) .
+			RecvCycleDone
+		) + (
+			RecvEVPresent(t, false) .
+			RecvCycleDone
+		))
+	;
+	EVChecking =
+		EVChecking'(0) .
+		EVChecking'(1) .
+		EVChecking'(2) .
+		EVChecking'(3) 
+		% EVChecking'(6)
+		% EVChecking'(0) .
+		% EVChecking'(1) .
+		% EVChecking'(2) .
+		% EVChecking'(3) .
+		% EVChecking'(4) .
+		% EVChecking'(5) .
+		% EVChecking'(6) .
+		% EVChecking'(7)
+	;
+	
+	CycleRegular'(t: Nat) =
+		EVChecking .
+		((
+			UsersDetected(t, true) .
+			SendRequestGreen(t) .
+			RecvCycleDone
+		) + (
+			UsersDetected(t, false)
+		))
+	;
+	CycleRegular =
+		CycleRegular'(2) .
+		CycleRegular'(3) 
+		% CycleRegular'(6) 
+		% CycleRegular'(7)
+	;
 
-init WeatherComponent(Dry);
+	CyclePedestrians'(t: Nat) =
+		EVChecking .
+		((
+			UsersDetected(t, true) .
+			SendRequestGreen(t) .
+			RecvCycleDone
+		) + (
+			UsersDetected(t, false)
+		))
+	;
+	CyclePedestrians =
+		CyclePedestrians'(0) .
+		CyclePedestrians'(1)
+		% CyclePedestrians'(0) .
+		% CyclePedestrians'(1) .
+		% CyclePedestrians'(2) .
+		% CyclePedestrians'(3)
+	;
+
+init
+hide(
+	{
+		% WeatherPoll,
+		BadWeather
+		% EVPoll
+		% EVPresent
+		% RequestGreen,
+		% CycleDone
+	},
+allow(
+	{
+		% External actions
+		ShowLight,
+		LightTimeout,
+		EVDetected,
+		Weather,
+		UsersDetected,
+
+		% Multi actions
+		WeatherPoll,
+		BadWeather,
+		EVPoll,
+		EVPresent,
+		RequestGreen,
+		CycleDone
+	},
+comm(	{
+		SendWeatherPoll|RecvWeatherPoll -> WeatherPoll,
+		SendBadWeather|RecvBadWeather -> BadWeather,
+
+SendRequestGreen|RecvRequestGreen -> RequestGreen,
+		SendEVPoll|RecvEVPoll -> EVPoll,
+		SendEVPresent|RecvEVPresent -> EVPresent,
+
+		SendCycleDone|RecvCycleDone -> CycleDone
+	}, 
+ EVComponent(defaultLights) || UserDetectionComponent || WeatherComponent(Dry) || LightComponent(defaultLights)
+)));

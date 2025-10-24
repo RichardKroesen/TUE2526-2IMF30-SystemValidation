@@ -1,3 +1,15 @@
+
+% ------- REQUIREMNETS BASED ON DOC: v1.6 ------ % 
+
+% ======== Natural Language Specification ========
+% After for any traffic light t element of T, 
+% UserDetected(t, true) occurs, eventually,
+% ShowLight(t, green) must occur.
+% ================================================
+
+% ================= Weak Variant =================
+
 forall t: Nat. (val(t < TRAFFIC_LIGHT_COUNT)) =>
-  [true* . UsersDetected(t, true)]
-   mu X. (<ShowLight(t, Green)> . ([!ShowLight(t, Green)])* <true* . ShowLight(t, Green)> true)
+  ([true* . UsersDetected(t, true) . 
+   !(ShowLight(t, Green))*]
+  <true* . ShowLight(t, Green)>true)

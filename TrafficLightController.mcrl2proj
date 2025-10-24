@@ -3,6 +3,7 @@
  <properties>
   <property>Deadlock_Free</property>
   <property>R1</property>
+  <property>R1_weak</property>
   <property>R2</property>
   <property>R3_1</property>
   <property>R3_2</property>
@@ -17,6 +18,6 @@
   <property>R9</property>
  </properties>
  <jittyc>false</jittyc>
- <linearisation_method>regular</linearisation_method>
+ <linearisation_method>stack</linearisation_method>
  <enumeration_limit>0</enumeration_limit>
 </root>

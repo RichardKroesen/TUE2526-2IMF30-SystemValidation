@@ -1,5 +1,5 @@
 
-% ------- REQUIREMNETS BASED ON DOC: v1.4 ------ % 
+% ------- REQUIREMNETS BASED ON DOC: v1.6 ------ % 
 
 % ======== Natural Language Specification ========
 % When for any traffic light t element of T, 
@@ -10,6 +10,8 @@
 
 forall t: Nat. val(t < TRAFFIC_LIGHT_COUNT) =>
     [ true* . ShowLight(t, Green) .
-     (!(LightTimeout(t, Green) || EVDetected(t, false) || UsersDetected(t, false)))* .
+     (!(LightTimeout(t, Green) || 
+        EVDetected(t, false) || 
+        UsersDetected(t, false)))* .
      ShowLight(t, Orange)
     ] false

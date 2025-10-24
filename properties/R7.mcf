@@ -1,5 +1,5 @@
 
-% ------- REQUIREMNETS BASED ON DOC: v1.4 ------ % 
+% ------- REQUIREMNETS BASED ON DOC: v1.6 ------ % 
 
 % ======== Natural Language Specification ========
 % For any traffic light t element of T, where 
@@ -8,8 +8,9 @@
 % UserDetected(t, true) has occurred.
 % ================================================
 
-forall t: Nat. val(t < TRAFFIC_LIGHT_COUNT) =>
-    [ true* . UsersDetected(t, false) .
-     (!(UsersDetected(t, true) && EVDetected(t,false))* .
-     ShowLight(t, Green)
-    ] false
+forall t: Nat. 
+  val(t < TRAFFIC_LIGHT_COUNT) =>
+  ([true* . UsersDetected(t, false) . 
+    (!(UsersDetected(t, true) || EVDetected(t, true)))* . 
+    ShowLight(t, Green)]
+  false)
