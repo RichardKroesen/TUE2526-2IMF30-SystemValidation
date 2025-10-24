@@ -93,15 +93,13 @@ proc
 		)
 	;
 
-	WeatherComponent(current: WeatherCondition) =
+	WeatherComponent =
+		RecvWeatherPoll .
 		(sum new: WeatherCondition .
 			Weather(new) .
-			WeatherComponent(new)
-		) + (
-			RecvWeatherPoll .
-			SendBadWeather(current != Dry) .
-			WeatherComponent(current)
-		)
+			SendBadWeather(new != Dry)
+		) .
+		WeatherComponent
 	;
 	UserDetectionComponent =
 		SendWeatherPoll .
@@ -192,6 +190,6 @@ comm(	{
 		SendEVPoll|RecvEVPoll -> EVPoll,
 		SendEVPresent|RecvEVPresent -> EVPresent
 	},
-EVComponent || UserDetectionComponent || WeatherComponent(Dry)
+EVComponent || UserDetectionComponent || WeatherComponent
 %)));
 ));
