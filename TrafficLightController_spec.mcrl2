@@ -134,7 +134,7 @@ proc
 		SendEVPoll(t) .
 		((
 			RecvEVPresent(t, true) .
-			SendRequestGreen(t) .
+			RecvRequestGreen(t) .
 			RecvCycleDone
 		) + (
 			RecvEVPresent(t, false) .
@@ -192,15 +192,15 @@ proc
 	;
 
 init
-%hide(
-%	{
-%		WeatherPoll,
-%		BadWeather
-%		EVPoll
-%		EVPresent
-%		RequestGreen,
-%		CycleDone
-%	},
+hide(
+	{
+		WeatherPoll,
+		BadWeather,
+		EVPoll,
+		EVPresent,
+		RequestGreen,
+		CycleDone
+	},
 allow(
 	{
 		% External actions
@@ -229,5 +229,5 @@ SendRequestGreen|RecvRequestGreen -> RequestGreen,
 		SendCycleDone|RecvCycleDone -> CycleDone
 	}, 
 EVComponent(defaultLights) || UserDetectionComponent || WeatherComponent(Dry) || LightComponent(defaultLights)
-%)));
-));
+)));
+% ));
