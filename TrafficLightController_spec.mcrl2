@@ -41,6 +41,13 @@ sort
 
 % Process:
 proc 
+	ShowGreenLightPedestrian(t: Nat) =
+		ShowLight(t, Green) .
+		UsersDetected(t, false) .
+		ShowLight(t, Orange) .
+		LightTimeout(t, Orange) .
+		ShowLight(t, Red)
+	;
 	ShowGreenLightEV(t: Nat) =
 		ShowLight(t, Green) .
 		(LightTimeout(t, Green) + EVDetected(t, false)) .
@@ -118,7 +125,7 @@ proc
 		CycleEV .
 		((
 			UsersDetected(t, true) .
-			ShowGreenLight(t)
+			ShowGreenLightPedestrianPrio(t)
 		) + (
 			UsersDetected(t, false)
 		))
