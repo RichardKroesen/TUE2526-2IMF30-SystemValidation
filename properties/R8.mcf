@@ -22,14 +22,14 @@ forall t: Nat.
     [ShowLight(t, Red)]       X(n, UserPresent, true, EVPresent, BadWeather) &&
     [ShowLight(t, Green)]     X(0, UserPresent, false, EVPresent, BadWeather) &&
     [UsersDetected(t, true)]  X(n, true, LightRed, EVPresent, BadWeather) &&
-    [UsersDetected(t, false)] X(n, false, LightRed, EVPresent, BadWeather) &&
+    [UsersDetected(t, false)] X(0, false, LightRed, EVPresent, BadWeather) &&
     [EVDetected(t', false)]    X(n, UserPresent, LightRed, false, BadWeather) &&
     [EVDetected(t', true)]    X(0, UserPresent, LightRed, true, BadWeather) &&
 
-	(val(LightRed && UserPresent && !EVPresent && (t' in PED_SET => !BadWeather)) => [ShowLight(t', Green)] 
+	(val(LightRed && UserPresent && !EVPresent && ((t' in PED_SET) => (!BadWeather))) => [ShowLight(t', Green)] 
                               X(n + 1, UserPresent, LightRed, EVPresent, BadWeather)) &&
 
-    (val(!(LightRed && UserPresent && !EVPresent && (t' in PED_SET => !BadWeather))) => [ShowLight(t', Green)] 
+    (val(!(LightRed && UserPresent && !EVPresent && ((t' in PED_SET) => (!BadWeather)))) => [ShowLight(t', Green)] 
                               X(n, UserPresent, LightRed, EVPresent, BadWeather)) &&
 
     val(n < 3) &&
