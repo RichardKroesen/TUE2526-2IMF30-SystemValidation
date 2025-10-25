@@ -15,6 +15,8 @@
   <property>R7</property>
   <property>R8</property>
   <property>R9</property>
+  <property>UserDetected Exists</property>
+  <property>Showlight Exists</property>
  </properties>
  <jittyc>false</jittyc>
  <linearisation_method>stack</linearisation_method>

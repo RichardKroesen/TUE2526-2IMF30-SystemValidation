@@ -1,0 +1,2 @@
+forall t: Nat. (val(t < TRAFFIC_LIGHT_COUNT)) =>
+  <true*.ShowLight(t,Green)>true
