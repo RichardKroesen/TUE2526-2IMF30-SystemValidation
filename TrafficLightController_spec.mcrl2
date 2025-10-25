@@ -31,9 +31,9 @@ map
  	PEDESTRIAN_COUNT: Nat;
 	PED_SET: Set(Nat);
 eqn
-	TRAFFIC_LIGHT_COUNT = 4; %16;
+	TRAFFIC_LIGHT_COUNT = 8;
 	PED_SET = 	{0, 1
-				%,2, 3
+				,2, 3
 				};
 
 % Data Types Definitions:
@@ -147,13 +147,13 @@ proc
 
 	% These procedures cycle through their set of traffic lights
 	CycleRegular =
-		CheckRegular(2) .
-		CheckRegular(3) .
-		%CheckRegular(4) .
-		%CheckRegular(5) .
-		%CheckRegular(6) .
-		%CheckRegular(7) .
-		%CheckRegular(8) .
+		%CheckRegular(2) .
+		%CheckRegular(3) .
+		CheckRegular(4) .
+		CheckRegular(5) .
+		CheckRegular(6) .
+		CheckRegular(7) .
+		CheckRegular(8) .
 		%CheckRegular(9) .
 		%CheckRegular(10) .
 		%CheckRegular(11) .
@@ -163,18 +163,18 @@ proc
 	;
 	CyclePedestrians =
 		CheckPedestrian(0) .
-		CheckPedestrian(1) 
-		%CheckPedestrian(2) .
-		%CheckPedestrian(3)
+		CheckPedestrian(1) .
+		CheckPedestrian(2) .
+		CheckPedestrian(3)
 	;
 	CycleEV =
-		CheckEV(2) .
-		CheckEV(3) 
-		%CheckEV(4) .
-		%CheckEV(5) .
-		%CheckEV(6) .
-		%CheckEV(7) .
-		%CheckEV(8) .
+		%CheckEV(2) .
+		%CheckEV(3) 
+		CheckEV(4) .
+		CheckEV(5) .
+		CheckEV(6) .
+		CheckEV(7) .
+		CheckEV(8) 
 		%CheckEV(9) .
 		%CheckEV(10) .
 		%CheckEV(11) .
