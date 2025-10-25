@@ -62,7 +62,8 @@ $(OUT)/%.pbes: $(OUT)/$(BASE_INPUT).lts $(PROPERTIES)/%.mcf
 		--preprocess-modal-operators \
 		--formula=$(PROPERTIES)/$*.mcf $< $@
 
-$(OUT)/$(BASE_INPUT).lts: $(OUT)/$(BASE_INPUT).opt.lps
+#$(OUT)/$(BASE_INPUT).lts: $(OUT)/$(BASE_INPUT).opt.lps
+$(OUT)/$(BASE_INPUT).lts: $(OUT)/$(BASE_INPUT).lps
 	@mkdir -p $(OUT)
 	lps2lts -v --cached --confluence $^ $@
 

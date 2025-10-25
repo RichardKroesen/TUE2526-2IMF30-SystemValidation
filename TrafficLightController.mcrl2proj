@@ -2,6 +2,8 @@
  <spec>TrafficLightController_spec.mcrl2</spec>
  <properties>
   <property>Deadlock_Free</property>
+  <property>Exists_Showlight</property>
+  <property>Exists_UserDetected</property>
   <property>R1</property>
   <property>R1_weak</property>
   <property>R2</property>
@@ -15,8 +17,6 @@
   <property>R7</property>
   <property>R8</property>
   <property>R9</property>
-  <property>UserDetected Exists</property>
-  <property>Showlight Exists</property>
  </properties>
  <jittyc>false</jittyc>
  <linearisation_method>stack</linearisation_method>

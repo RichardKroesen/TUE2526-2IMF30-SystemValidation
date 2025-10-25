@@ -31,39 +31,16 @@ map
 	PED_SET: Set(Nat);
 eqn
 	TRAFFIC_LIGHT_COUNT = 8;
-	PED_SET = 	{0, 1
-				,2, 3
-				};
+	PED_SET = {0, 1, 2, 3};
 
-% Data Types Definitions:
+% Data Types Definitions
 sort 	
 	LightColorState = struct Green | Orange | Red;
 	WeatherCondition = struct Dry | Snowing | Raining;
 
-% Process:
+% Process
 proc 
-	ShowGreenLightPedestrian(t: Nat) =
-		ShowLight(t, Green) .
-		UsersDetected(t, false) .
-		ShowLight(t, Orange) .
-		LightTimeout(t, Orange) .
-		ShowLight(t, Red)
-	;
-	ShowGreenLightEV(t: Nat) =
-		ShowLight(t, Green) .
-		(LightTimeout(t, Green) + EVDetected(t, false)) .
-		ShowLight(t, Orange) .
-		LightTimeout(t, Orange) .
-		ShowLight(t, Red)
-	;
-	ShowGreenLight(t: Nat) =
-		ShowLight(t, Green) .
-		(LightTimeout(t, Green) + UsersDetected(t, false)) .
-		ShowLight(t, Orange) .
-		LightTimeout(t, Orange) .
-		ShowLight(t, Red)
-	;
-
+	% Parallel components
 	EVComponent =
 		sum t: Nat . (t < TRAFFIC_LIGHT_COUNT) -> (
 			RecvEVPoll(t) .
@@ -86,21 +63,34 @@ proc
 		) .
 		WeatherComponent
 	;
+
 	UserDetectionComponent =
-		%SendWeatherPoll .
-		%((
-		%	RecvBadWeather(true) .
-		%	CyclePedestrians .
-		%	CycleRegular
-		%) + (
-		%	RecvBadWeather(false) .
-		%	CycleRegular .
-		%	CyclePedestrians
-		%)) .
 		CycleRegular .
 		UserDetectionComponent
 	;
 
+	% Procedures to show green lights to traffic lights
+	ShowGreenLightPedestrian(t: Nat) =
+		ShowLight(t, Green) .
+		UsersDetected(t, false) .
+		ShowLight(t, Orange) .
+		LightTimeout(t, Orange) .
+		ShowLight(t, Red)
+	;
+	ShowGreenLightEV(t: Nat) =
+		ShowLight(t, Green) .
+		(LightTimeout(t, Green) + EVDetected(t, false)) .
+		ShowLight(t, Orange) .
+		LightTimeout(t, Orange) .
+		ShowLight(t, Red)
+	;
+	ShowGreenLight(t: Nat) =
+		ShowLight(t, Green) .
+		(LightTimeout(t, Green) + UsersDetected(t, false)) .
+		ShowLight(t, Orange) .
+		LightTimeout(t, Orange) .
+		ShowLight(t, Red)
+	;
 	
 	% These procedures check an individual traffic light
 	CheckEV(t: Nat) =
@@ -146,18 +136,10 @@ proc
 
 	% These procedures cycle through their set of traffic lights
 	CycleRegular =
-		%CheckRegular(2) .
-		%CheckRegular(3) .
 		CheckRegular(4) .
 		CheckRegular(5) .
 		CheckRegular(6) .
 		CheckRegular(7) .
-		%CheckRegular(8) .
-		%CheckRegular(9) .
-		%CheckRegular(10) .
-		%CheckRegular(11) .
-		%CheckRegular(12) .
-		%CheckRegular(13) .
 		CyclePedestrians
 	;
 	CyclePedestrians =
@@ -167,29 +149,20 @@ proc
 		CheckPedestrian(3)
 	;
 	CycleEV =
-		%CheckEV(2) .
-		%CheckEV(3) 
 		CheckEV(4) .
 		CheckEV(5) .
 		CheckEV(6) .
 		CheckEV(7) 
-		%CheckEV(8) .
-		%CheckEV(9) .
-		%CheckEV(10) .
-		%CheckEV(11) .
-		%CheckEV(12) .
-		%CheckEV(13)
 	;
+
 init
-%hide(
-%	{
-%		WeatherPoll,
-%		BadWeather,
-%		EVPoll,
-%		EVPresent,
-%		RequestGreen,
-%		CycleDone
-%	},
+hide(
+	{
+		WeatherPoll,
+		BadWeather,
+		EVPoll,
+		EVPresent
+	},
 allow(
 	{
 		% External actions
@@ -213,5 +186,4 @@ comm(	{
 		SendEVPresent|RecvEVPresent -> EVPresent
 	},
 EVComponent || UserDetectionComponent || WeatherComponent
-%)));
-));
+)));
