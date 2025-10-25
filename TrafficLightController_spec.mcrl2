@@ -28,7 +28,6 @@ act
 % Constants
 map
  	TRAFFIC_LIGHT_COUNT: Nat;
- 	PEDESTRIAN_COUNT: Nat;
 	PED_SET: Set(Nat);
 eqn
 	TRAFFIC_LIGHT_COUNT = 8;
@@ -153,7 +152,7 @@ proc
 		CheckRegular(5) .
 		CheckRegular(6) .
 		CheckRegular(7) .
-		CheckRegular(8) .
+		%CheckRegular(8) .
 		%CheckRegular(9) .
 		%CheckRegular(10) .
 		%CheckRegular(11) .
@@ -173,8 +172,8 @@ proc
 		CheckEV(4) .
 		CheckEV(5) .
 		CheckEV(6) .
-		CheckEV(7) .
-		CheckEV(8) 
+		CheckEV(7) 
+		%CheckEV(8) .
 		%CheckEV(9) .
 		%CheckEV(10) .
 		%CheckEV(11) .
