@@ -16,18 +16,33 @@ forall t: Nat.
         t  < TRAFFIC_LIGHT_COUNT && 
         t' < TRAFFIC_LIGHT_COUNT) => 
 
-  nu X(n : Nat = 0, UserPresent : Bool = false, LightRed : Bool = true, EVPresent : Bool = false).
-    [ShowLight(t, Red)]       X(n, UserPresent, true, EVPresent) &&
-    [ShowLight(t, Green)]     X(0, UserPresent, false, EVPresent) &&
-    [UsersDetected(t, true)]  X(n, true, LightRed, EVPresent) &&
-    [UsersDetected(t, false)] X(n, false, LightRed, EVPresent) &&
-    [EVDetected(t', false)]    X(n, UserPresent, LightRed, false) &&
-    [EVDetected(t', true)]    X(0, UserPresent, LightRed, true) &&
-    (val(LightRed && UserPresent && !EVPresent) => [ShowLight(t', Green)] 
-                              X(n + 1, UserPresent, LightRed, EVPresent)) &&
-    (val(!(LightRed && UserPresent && !EVPresent)) => [ShowLight(t', Green)] 
-                              X(n, UserPresent, LightRed, EVPresent)) &&
+  nu X(n : Nat = 0, UserPresent : Bool = false, LightRed : Bool = true, EVPresent : Bool = false, BadWeather : Bool = false).
+	[Weather(Raining) || Weather(Snowing)]X(n, UserPresent, LightRed, EVPresent, true) &&
+    [Weather(Dry)]X(n, UserPresent, LightRed, EVPresent, false) &&
+    [ShowLight(t, Red)]       X(n, UserPresent, true, EVPresent, BadWeather) &&
+    [ShowLight(t, Green)]     X(0, UserPresent, false, EVPresent, BadWeather) &&
+    [UsersDetected(t, true)]  X(n, true, LightRed, EVPresent, BadWeather) &&
+    [UsersDetected(t, false)] X(n, false, LightRed, EVPresent, BadWeather) &&
+    [EVDetected(t', false)]    X(n, UserPresent, LightRed, false, BadWeather) &&
+    [EVDetected(t', true)]    X(0, UserPresent, LightRed, true, BadWeather) &&
+
+	val(!(t' in !PED_SET)) => 
+		(
+			(val(LightRed && UserPresent && !EVPresent && !BadWeather) => [ShowLight(t', Green)] 
+                              X(n + 1, UserPresent, LightRed, EVPresent, BadWeather)) &&
+    		(val(!(LightRed && UserPresent && !EVPresent && !BadWeather)) => [ShowLight(t', Green)] 
+                              X(n, UserPresent, LightRed, EVPresent, BadWeather))
+		) &&
+
+	val((t' in !PED_SET)) => 
+		(
+			(val(LightRed && UserPresent && !EVPresent) => [ShowLight(t', Green)] 
+                              X(n + 1, UserPresent, LightRed, EVPresent, BadWeather)) &&
+    		(val(!(LightRed && UserPresent && !EVPresent)) => [ShowLight(t', Green)] 
+                              X(n, UserPresent, LightRed, EVPresent, BadWeather))
+		) &&
+
     val(n < 3) &&
     [!(ShowLight(t, Red) || ShowLight(t, Green) || UsersDetected(t, true) ||
        UsersDetected(t, false) || ShowLight(t', Green) || EVDetected(t', false)|| EVDetected(t', true))]
-      X(n, UserPresent, LightRed, EVPresent)
+      X(n, UserPresent, LightRed, EVPresent, BadWeather)

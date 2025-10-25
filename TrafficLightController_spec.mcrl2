@@ -31,8 +31,8 @@ map
  	PEDESTRIAN_COUNT: Nat;
 	PED_SET: Set(Nat);
 eqn
-	TRAFFIC_LIGHT_COUNT = 4;
-	PED_SET = {0, 1};
+	TRAFFIC_LIGHT_COUNT = 16;
+	PED_SET = {0, 1, 2, 3};
 
 % Data Types Definitions:
 sort 	
@@ -125,7 +125,7 @@ proc
 		CycleEV .
 		((
 			UsersDetected(t, true) .
-			ShowGreenLightPedestrianPrio(t)
+			ShowGreenLightPedestrian(t)
 		) + (
 			UsersDetected(t, false)
 		))
@@ -145,17 +145,39 @@ proc
 
 	% These procedures cycle through their set of traffic lights
 	CycleRegular =
-		CheckRegular(2) .
-		CheckRegular(3) .
+		%CheckRegular(2) .
+		%CheckRegular(3) .
+		CheckRegular(4) .
+		CheckRegular(5) .
+		CheckRegular(6) .
+		CheckRegular(7) .
+		CheckRegular(8) .
+		CheckRegular(9) .
+		CheckRegular(10) .
+		CheckRegular(11) .
+		CheckRegular(12) .
+		CheckRegular(13) .
 		CyclePedestrians
 	;
 	CyclePedestrians =
 		CheckPedestrian(0) .
-		CheckPedestrian(1)
+		CheckPedestrian(1) .
+		CheckPedestrian(2) .
+		CheckPedestrian(3)
 	;
 	CycleEV =
-		CheckEV(2) .
-		CheckEV(3) 
+		%CheckEV(2) .
+		%CheckEV(3) .
+		CheckEV(4) .
+		CheckEV(5) .
+		CheckEV(6) .
+		CheckEV(7) .
+		CheckEV(8) .
+		CheckEV(9) .
+		CheckEV(10) .
+		CheckEV(11) .
+		CheckEV(12) .
+		CheckEV(13)
 	;
 init
 %hide(
