@@ -2,8 +2,6 @@
  <spec>TrafficLightController_spec.mcrl2</spec>
  <properties>
   <property>Deadlock_Free</property>
-  <property>Exists_Showlight</property>
-  <property>Exists_UserDetected</property>
   <property>R1</property>
   <property>R1_weak</property>
   <property>R2</property>

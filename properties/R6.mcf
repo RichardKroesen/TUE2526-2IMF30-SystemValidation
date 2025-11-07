@@ -19,10 +19,8 @@ forall t: Nat, p: Nat.
        EVPresent: Bool = false, UserPresent: Bool = false). (
     [Weather(Raining) || Weather(Snowing)]X(true, true, EVPresent, UserPresent) &&
     [Weather(Dry)]X(Priority, false, EVPresent, UserPresent) &&
-    [UsersDetected(p, true)]    X(Priority, BadWeather, EVPresent, true) &&
-    [UsersDetected(p, false)]   X(Priority, BadWeather, EVPresent, false) &&
-    [EVDetected(t, true)]       X(Priority, BadWeather, true, UserPresent) &&
-    [EVDetected(t, false)]      X(Priority, BadWeather, false, UserPresent) &&
+    forall b:Bool. [UsersDetected(p, b)] X(Priority, BadWeather, EVPresent, b) &&
+    forall b:Bool. [EVDetected(t, b)] X(Priority, BadWeather, b, UserPresent) &&
     (val(BadWeather) => (
       (val(Priority) => (
         [ShowLight(p, Green)]   X(false, BadWeather, EVPresent, UserPresent) &&
